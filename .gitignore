@@ -1,0 +1,18 @@
+# Cấu hình cũ của bạn
+.vs/
+*.vsix
+Debug/
+Release/
+x64/
+*.obj
+*.pch
+*.pdb
+*.suo
+
+# Bổ sung thêm cho đầy đủ
+*.log
+*.user
+*.ilk
+*.exp
+*.lib
+node_modules/

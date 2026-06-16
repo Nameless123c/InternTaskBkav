@@ -1,0 +1,47 @@
+#pragma once
+#include "afxdialogex.h"
+#include "pch.h"
+
+class CChatFriendDlg : public CDialogEx{
+	DECLARE_DYNAMIC(CChatFriendDlg)
+
+public:
+	CChatFriendDlg(CWnd* pParent = nullptr);  
+	virtual ~CChatFriendDlg();
+
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_CHATFRIEND_DIALOG };
+#endif
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);  
+
+	DECLARE_MESSAGE_MAP()
+
+public:
+	void GetMessage();
+	void DrawChatArea(CDC* pDC);
+	int DrawSingleMessage(CDC* pDC, const Message& msg, int x, int y, int nContainerWidth);
+	void SendMessage();
+	void OnTimer(UINT_PTR nIDEvent);
+	void UpdateLastMessageTime();
+
+	CImage* m_pImgSend;
+	CImage* m_pImgEmoji;
+	CImage* m_pImgImage;
+	CImage* m_pImgAttach;
+
+	CRect m_rectSendBtn;
+	CRect m_rectEmojiBtn;
+	CRect m_rectImageBtn;
+	CRect m_rectAttachBtn;
+
+	int m_nScrollPos;   
+	int m_nTotalHeight; 
+	CRect m_rectChatArea;
+	
+	virtual BOOL OnInitDialog();
+	afx_msg void OnPaint();
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+};
