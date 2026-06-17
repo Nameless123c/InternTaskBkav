@@ -50,35 +50,6 @@ void PaintService::DrawIcon(CDC* pDC, CImage* pImage, int x, int y, int w, int h
     }
 }
 
-void PaintService::DrawStyledTitle(CDC* pDC, CWnd* pParent, int nCtrlID, CString strText) {
-    CWnd* pCtrl = pParent->GetDlgItem(nCtrlID);
-    if (!pCtrl) return;
-
-    if (pCtrl->IsWindowVisible()) {
-        pCtrl->ShowWindow(SW_HIDE);
-    }
-
-    CRect rect;
-    pCtrl->GetWindowRect(&rect);
-    pParent->ScreenToClient(&rect);
-
-    CFont font;
-    font.CreateFont(
-        24, 0, 0, 0, FW_BOLD,
-        FALSE, FALSE, 0,
-        ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-        DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Segoe UI")
-    );
-
-    CFont* pOldFont = pDC->SelectObject(&font);
-
-    pDC->SetTextColor(RGB(20, 106, 224)); 
-    pDC->SetBkMode(TRANSPARENT);
-
-    pDC->DrawText(strText, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-    pDC->SelectObject(pOldFont);
-}
 
 void PaintService::DrawAppBar(CWnd* pParent, UINT nID, CDC* pDC) {
     if (!pParent) return;

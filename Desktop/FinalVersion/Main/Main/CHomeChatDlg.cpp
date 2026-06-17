@@ -52,6 +52,12 @@ BOOL CHomeChatDlg::OnInitDialog()
 
     SetBackgroundColor(RGB(255, 255, 255));
 
+    m_fontTitle.CreatePointFont(180, _T("Segoe UI Semibold"));
+    CWnd* pTitle = GetDlgItem(IDC_STATIC_HOMECHAT_TITLE);
+    if (pTitle) {
+        pTitle->SetFont(&m_fontTitle);
+    }
+
     return TRUE;
 }
 
@@ -80,9 +86,6 @@ void CHomeChatDlg::OnPaint()
     }
 
     DrawFriendList(&dc);
-
-    PaintService::DrawStyledTitle(&dc, this, IDC_STATIC_HOMECHAT_TITLE, ChangeFormat::UTF8ToCString("Bkav Chat"));
-
 }
 
 void CHomeChatDlg::GetFiendList()
@@ -235,6 +238,12 @@ HBRUSH CHomeChatDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor){
 
         static CBrush brush(RGB(250, 250, 250));
         return (HBRUSH)brush.GetSafeHandle();
+    }
+
+    if (pWnd->GetDlgCtrlID() == IDC_STATIC_HOMECHAT_TITLE) {
+        pDC->SetTextColor(RGB(20, 106, 224));
+        pDC->SetBkMode(TRANSPARENT);        
+        return (HBRUSH)GetStockObject(NULL_BRUSH); 
     }
 
     return hbr;

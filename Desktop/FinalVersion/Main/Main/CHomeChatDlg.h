@@ -30,6 +30,7 @@ public:
 	int m_nFriendScrollPos = 0;
 	int m_nTotalFriendHeight = 0;
 	std::vector<Friend> m_vecFriendDisplay;
+	CFont m_fontTitle;
 
 	afx_msg void OnPaint();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);

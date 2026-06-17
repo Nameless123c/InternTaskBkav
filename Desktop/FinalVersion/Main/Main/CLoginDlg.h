@@ -25,4 +25,5 @@ public:
 	CMFCButton m_btnLogin;
 	virtual BOOL OnInitDialog();
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	CFont m_fontTitle;
 };

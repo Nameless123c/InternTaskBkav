@@ -47,12 +47,17 @@ BOOL CLoginDlg::OnInitDialog()
 
 	SetBackgroundColor(RGB(255, 255, 255));
 
+	m_fontTitle.CreatePointFont(180, _T("Segoe UI Semibold"));
+	CWnd* pTitle = GetDlgItem(IDC_STATIC_LOGIN_TITLE);
+	if (pTitle) {
+		pTitle->SetFont(&m_fontTitle);
+	}
+
 	return TRUE;
 }
 
 void CLoginDlg::OnPaint() {
 	CPaintDC dc(this);
-	PaintService::DrawStyledTitle(&dc, this, IDC_STATIC_LOGIN_TITLE, ChangeFormat::UTF8ToCString("Bkav Chat"));
 }
 
 
@@ -166,6 +171,12 @@ HBRUSH CLoginDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 
 	if (pWnd->GetDlgCtrlID() == IDC_STATIC_LOGIN_GOTO_SIGNUP) {
 		pDC->SetTextColor(RGB(4, 125, 231)); // Màu #047DE7
+		pDC->SetBkMode(TRANSPARENT);
+		return (HBRUSH)GetStockObject(NULL_BRUSH);
+	}
+
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_LOGIN_TITLE) {
+		pDC->SetTextColor(RGB(20, 106, 224));
 		pDC->SetBkMode(TRANSPARENT);
 		return (HBRUSH)GetStockObject(NULL_BRUSH);
 	}

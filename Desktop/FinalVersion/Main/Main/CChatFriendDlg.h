@@ -40,6 +40,7 @@ public:
 	int m_nTotalHeight; 
 	CRect m_rectChatArea;
 	bool m_bIsFirstLoad;
+	CFont m_fontTitle;
 	
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();

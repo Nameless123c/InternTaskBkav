@@ -74,6 +74,12 @@ BOOL CChatFriendDlg::OnInitDialog() {
 		pEdit->SetCueBanner(ChangeFormat::UTF8ToCString("Nhập tin nhắn..."));
 	}
 
+	m_fontTitle.CreateFont(50, 0, 0, 0, 0, FALSE, FALSE, 0,
+		ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Segoe UI Semibold"));
+
+	GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME)->SetFont(&m_fontTitle);
+
 	GetMessage();
 	UpdateLastMessageTime();
 	SetTimer(1, 1000, NULL);
