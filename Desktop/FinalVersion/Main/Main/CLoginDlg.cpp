@@ -1,10 +1,8 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Main.h"
 #include "afxdialogex.h"
 #include "CLoginDlg.h"
 #include "ApiService.h"
-#include "ChangeFormat.h"
-#include "PaintService.h"
 #include "DatabaseService.h"
 #include <afxbutton.h>	
 
@@ -68,16 +66,18 @@ void CLoginDlg::OnBnClickedBtnLoginSubmit(){
 	GetDlgItemText(IDC_EDIT_LOGIN_PASSWORD, password);
 
 	if (username == _T("")) {
+		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Tên đăng nhập không được để trống"));
+		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(_T("Tên đăng nhập không được để trống"));
 	}
 	else if (password == _T("")) {
+		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Mật khẩu không được để trống"));
+		GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(_T("Mật khẩu không được để trống"));
 	}
 	else {
-		std::string strUsername = ChangeFormat::CStringToUTF8(username);
-		std::string strPassword = ChangeFormat::CStringToUTF8(password);
+		std::string strUsername = CW2A(username.GetString(), CP_UTF8);
+		std::string strPassword = CW2A(password.GetString(), CP_UTF8);
 
 		nlohmann::json data;
 		data["Username"] = strUsername;
@@ -88,8 +88,9 @@ void CLoginDlg::OnBnClickedBtnLoginSubmit(){
 		std::string strRes = ApiService::SendPostRequest(url, data, "");
 
 		if (strRes == "") {
+			GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_HIDE);
 			GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Lỗi kết nối mạng"));
+			GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
 		}
 		else {
 			nlohmann::json jsonRes = nlohmann::json::parse(strRes);
@@ -135,20 +136,20 @@ void CLoginDlg::OnBnClickedBtnLoginSubmit(){
 					sqlite3_finalize(stmt);
 				}
 
-
-
 				EndDialog(ID_HOMECHAT_TRIGGER);
 			}
 			else if (jsonRes["status"] == 0) {
 				std::string msg = jsonRes["message"];
 
 				if (msg == "Username not found" || msg == "Incorrect password") {
+					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_HIDE);
 					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_SHOW);
-					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Bạn nhập sai tên đăng nhập và mật khẩu!"));
+					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(_T("Bạn nhập sai tên đăng nhập và mật khẩu!"));
 				}
 				else {
+					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_HIDE);
 					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->ShowWindow(SW_SHOW);
-					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(CA2W(msg.c_str()));
+					GetDlgItem(IDC_STATIC_LOGIN_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
 				}
 			}
 		}
@@ -159,7 +160,6 @@ void CLoginDlg::OnStnClickedStaticLoginGotoSignup(){
 	EndDialog(ID_SIGNUP_TRIGGER);
 }
 
-// Trong file CLoginDlg.cpp
 HBRUSH CLoginDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
@@ -170,7 +170,7 @@ HBRUSH CLoginDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 	}
 
 	if (pWnd->GetDlgCtrlID() == IDC_STATIC_LOGIN_GOTO_SIGNUP) {
-		pDC->SetTextColor(RGB(4, 125, 231)); // Màu #047DE7
+		pDC->SetTextColor(RGB(4, 125, 231));
 		pDC->SetBkMode(TRANSPARENT);
 		return (HBRUSH)GetStockObject(NULL_BRUSH);
 	}

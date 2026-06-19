@@ -1,6 +1,10 @@
 #pragma once
 #include "afxdialogex.h"
 #include "pch.h"
+#include <vector>
+#include "Message.h"
+#include "Friend.h"
+
 
 class CChatFriendDlg : public CDialogEx{
 	DECLARE_DYNAMIC(CChatFriendDlg)
@@ -41,6 +45,8 @@ public:
 	CRect m_rectChatArea;
 	bool m_bIsFirstLoad;
 	CFont m_fontTitle;
+	std::vector<Message> m_vecLocalMessages;
+	Friend m_currentFriend;
 	
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();

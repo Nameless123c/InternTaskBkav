@@ -24,4 +24,5 @@ public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnPaint();
 	CMFCButton m_btnSignup;
+	afx_msg void OnStnClickedStaticSignupGotoLogin();
 };

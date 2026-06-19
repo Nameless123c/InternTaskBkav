@@ -27,8 +27,6 @@ CMainApp theApp;
 void CMainApp::Logout() {
 	m_userData = User();
 	m_vecFriend.clear();
-	m_vecMessage.clear();
-	m_selectedFriend = Friend();
 }
 
 
@@ -53,51 +51,41 @@ BOOL CMainApp::InitInstance(){
 		DatabaseService::InitializeSchema();
 	}
 
-	bool running = TRUE;
-	INT curDlg = IDD_LOGIN_DIALOG;
-	while (running) {
-		if (curDlg == IDD_LOGIN_DIALOG) {
-			CLoginDlg dlg;
-			INT_PTR nResponse = dlg.DoModal();
+    bool running = TRUE;
+    INT curDlg = IDD_LOGIN_DIALOG;
 
-			if (nResponse == ID_SIGNUP_TRIGGER) {
-				curDlg = IDD_SIGNUP_DIALOG;
-			}
-			else if (nResponse == ID_HOMECHAT_TRIGGER) {
-				curDlg = IDD_HOMECHAT_DIALOG;
-			}
-			else {
-				running = FALSE;
-			}
-		}
-		else if (curDlg == IDD_SIGNUP_DIALOG) {
-			CSignupDlg dlg;
-			INT_PTR nResponse = dlg.DoModal();
-			
-			if (nResponse == ID_LOGIN_TRIGGER) {
-				curDlg = IDD_LOGIN_DIALOG;
-			}
-			else {
-				running = FALSE;
-			}
-		}
-		else if (curDlg == IDD_HOMECHAT_DIALOG) {
-			CHomeChatDlg dlg;
-			INT_PTR nResponse = dlg.DoModal();
-			
-			if (nResponse == ID_CHATFRIEND_TRIGGER) {
-				curDlg = IDD_CHATFRIEND_DIALOG;
-			}
-			else {
-				running = FALSE;
-			}
-		}
-		else if (curDlg == IDD_CHATFRIEND_DIALOG) {
-			CChatFriendDlg dlg;
-			INT_PTR nResponse = dlg.DoModal();
-			running = FALSE;
-		}
-	}
+    while (running) {
+        if (curDlg == IDD_LOGIN_DIALOG) {
+            CLoginDlg dlg;
+            INT_PTR nResponse = dlg.DoModal(); 
+
+            if (nResponse == ID_SIGNUP_TRIGGER) {
+                curDlg = IDD_SIGNUP_DIALOG;
+            }
+            else if (nResponse == ID_HOMECHAT_TRIGGER) {
+                curDlg = IDD_HOMECHAT_DIALOG;
+            }
+            else {
+                running = FALSE;
+            }
+        }
+        else if (curDlg == IDD_SIGNUP_DIALOG) {
+            CSignupDlg dlg;
+            INT_PTR nResponse = dlg.DoModal();
+
+            if (nResponse == ID_LOGIN_TRIGGER) {
+                curDlg = IDD_LOGIN_DIALOG;
+            }
+            else {
+                running = FALSE;
+            }
+        }
+        else if (curDlg == IDD_HOMECHAT_DIALOG) {
+            CHomeChatDlg dlg;
+            dlg.DoModal(); 
+            running = FALSE;
+        }
+    }
 
 	if (pShellManager != nullptr){
 		delete pShellManager;

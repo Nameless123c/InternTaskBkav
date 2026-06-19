@@ -1,8 +1,7 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Main.h"
 #include "afxdialogex.h"
 #include "CSignupDlg.h"
-#include "ChangeFormat.h"
 #include "ApiService.h"
 #include "DatabaseService.h"	
 #include "PaintService.h"
@@ -13,6 +12,7 @@ BEGIN_MESSAGE_MAP(CSignupDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_SIGNUP_SUBMIT, &CSignupDlg::OnBnClickedButtonSignupSubmit)
 	ON_WM_CTLCOLOR()
 	ON_WM_PAINT()
+	ON_STN_CLICKED(IDC_STATIC_SIGNUP_GOTO_LOGIN, &CSignupDlg::OnStnClickedStaticSignupGotoLogin)
 END_MESSAGE_MAP()
 
 CSignupDlg::CSignupDlg(CWnd* pParent /*=nullptr*/)
@@ -67,19 +67,21 @@ void CSignupDlg::OnBnClickedButtonSignupSubmit(){
 	GetDlgItemText(IDC_EDIT_SIGNUP_REPASS, rePass);
 
 	if (fullName == _T("") || username == _T("") || password == _T("") || rePass == _T("")) {
+		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Thông tin không được để trống"));
+		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(_T("Thông tin không được để trống"));
 	}
 	else if (password != rePass) {
+		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_SHOW);
-		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Mật khẩu không khớp!"));
+		GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(_T("Mật khẩu không khớp!"));
 	}
 	else {
 		std::string url = "http://localhost:8888/api/auth/register";
 
-		std::string strFullName = ChangeFormat::CStringToUTF8(fullName);
-		std::string strUsername = ChangeFormat::CStringToUTF8(username);
-		std::string strPassword = ChangeFormat::CStringToUTF8(password);
+		std::string strFullName = CW2A(fullName.GetString(), CP_UTF8);
+		std::string strUsername = CW2A(username.GetString(), CP_UTF8);
+		std::string strPassword = CW2A(password.GetString(), CP_UTF8);
 
 		nlohmann::json data;
 		data["FullName"] = strFullName;
@@ -89,8 +91,9 @@ void CSignupDlg::OnBnClickedButtonSignupSubmit(){
 		std::string res = ApiService::SendPostRequest(url, data, "");
 
 		if (res == "") {
+			GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_HIDE);
 			GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_SHOW);
-			GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Lỗi kết nối mạng"));
+			GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
 		} 
 		else {
 			nlohmann::json jsonRes = nlohmann::json::parse(res);
@@ -114,12 +117,14 @@ void CSignupDlg::OnBnClickedButtonSignupSubmit(){
 				std::string msg = jsonRes["message"];
 
 				if (msg == "Username already exists") {
+					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_HIDE);
 					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_SHOW);
-					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Tài khoản đã tồn tại!"));
+					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(_T("Tài khoản đã tồn tại!"));
 				}
 				else {
+					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_HIDE);
 					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_SHOW);
-					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString(msg));
+					GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
 				}
 			}
 		}
@@ -137,18 +142,23 @@ HBRUSH CSignupDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 	}
 
 	if (pWnd->GetDlgCtrlID() == IDC_STATIC_SIGNUP_TITLE) {
-		// Màu chữ đen
 		pDC->SetTextColor(RGB(0, 0, 0));
-
-		// Màu nền của chữ
 		pDC->SetBkColor(RGB(217, 217, 217)); // #D9D9D9
-
-		// Tạo brush tĩnh để tránh rò rỉ bộ nhớ
 		static CBrush brush(RGB(217, 217, 217));
 		return (HBRUSH)brush.GetSafeHandle();
+	}
+
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_SIGNUP_GOTO_LOGIN) {
+		pDC->SetTextColor(RGB(4, 125, 231));
+		pDC->SetBkMode(TRANSPARENT);
+		return (HBRUSH)GetStockObject(NULL_BRUSH);
 	}
 	
 	return hbr;
 }
 
 
+
+void CSignupDlg::OnStnClickedStaticSignupGotoLogin(){
+	EndDialog(ID_LOGIN_TRIGGER);
+}

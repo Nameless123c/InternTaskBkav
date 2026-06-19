@@ -15,8 +15,6 @@ public:
 	CMainApp();
 	User m_userData;
 	std::vector <Friend> m_vecFriend;
-	Friend m_selectedFriend;
-	std::vector<Message> m_vecMessage;
 
 public:
 	virtual BOOL InitInstance();

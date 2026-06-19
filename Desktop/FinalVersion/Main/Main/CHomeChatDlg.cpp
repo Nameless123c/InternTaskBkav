@@ -1,12 +1,12 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Main.h"
 #include "afxdialogex.h"
 #include "CHomeChatDlg.h"
 #include "ApiService.h"
-#include "ChangeFormat.h"
 #include "Friend.h"
 #include "FileService.h"
 #include "PaintService.h"
+
 
 IMPLEMENT_DYNAMIC(CHomeChatDlg, CDialogEx)
 
@@ -64,13 +64,12 @@ BOOL CHomeChatDlg::OnInitDialog()
 void CHomeChatDlg::OnPaint()
 {
     CPaintDC dc(this);
-
     GetDlgItem(IDC_STATIC_HOMECHAT_FULLNAME)->ShowWindow(SW_SHOW);
-    GetDlgItem(IDC_STATIC_HOMECHAT_FULLNAME)->SetWindowText(ChangeFormat::UTF8ToCString(theApp.m_userData.fullName));
+    GetDlgItem(IDC_STATIC_HOMECHAT_FULLNAME)->SetWindowText(CA2W(theApp.m_userData.fullName.c_str(), CP_UTF8));
 
     CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT_HOMECHAT_SEARCH);
     if (pEdit) {
-        pEdit->SetCueBanner(ChangeFormat::UTF8ToCString("Tìm kiếm"));
+        pEdit->SetCueBanner(_T("Tìm kiếm"));
     }
 
     CWnd* pArea = GetDlgItem(IDC_STATIC_HOMECHAT_AVT);
@@ -95,8 +94,9 @@ void CHomeChatDlg::GetFiendList()
     std::string res = ApiService::SendGetRequest(url, token);
 
     if (res == "") {
+        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
-        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(ChangeFormat::UTF8ToCString("Lỗi kết nối mạng"));
+        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
     }
     else {
         nlohmann::json jsonRes = nlohmann::json::parse(res);
@@ -161,7 +161,8 @@ void CHomeChatDlg::DrawFriendList(CDC* pDC)
         }
 
         pDC->SetBkMode(TRANSPARENT);
-        pDC->TextOut(m_rectFriendArea.left + iconSize + 20, currentY + (iconSize / 4), ChangeFormat::UTF8ToCString(friendObj.fullName));
+        CString strName(CA2W(friendObj.fullName.c_str(), CP_UTF8));
+        pDC->TextOut((int)(m_rectFriendArea.left + iconSize + 20),(int)(currentY + (iconSize / 4)),strName);
 
         int dotSize = iconSize / 4;
         int dotX = m_rectFriendArea.left + padding + iconSize - dotSize * 1.3;
@@ -204,8 +205,22 @@ void CHomeChatDlg::OnLButtonDown(UINT nFlags, CPoint point)
         int clickedIndex = relativeY / itemHeight;
 
         if (clickedIndex >= 0 && clickedIndex < (int)m_vecFriendDisplay.size()) {
-            theApp.m_selectedFriend = m_vecFriendDisplay[clickedIndex];
-            EndDialog(ID_CHATFRIEND_TRIGGER);
+            Friend selectedFriend = m_vecFriendDisplay[clickedIndex];
+            auto it = m_mapChatWindows.find(selectedFriend.friendId);
+
+            if (it == m_mapChatWindows.end()) {
+                CChatFriendDlg* pNewChat = new CChatFriendDlg();
+                pNewChat->Create(IDD_CHATFRIEND_DIALOG, this);
+
+                m_mapChatWindows[selectedFriend.friendId] = pNewChat;
+                pNewChat->m_currentFriend = selectedFriend;
+
+                it = m_mapChatWindows.find(selectedFriend.friendId);
+            }
+
+            it->second->ShowWindow(SW_SHOW);
+            it->second->BringWindowToTop();
+            it->second->GetMessage();
         }
     }
     CDialogEx::OnLButtonDown(nFlags, point);
@@ -219,7 +234,7 @@ void CHomeChatDlg::OnChangeEditHomechatSearch()
 
     m_vecFriendDisplay.clear();
     for (const auto& friendObj : theApp.m_vecFriend) {
-        CString strName = ChangeFormat::UTF8ToCString(friendObj.fullName);
+        CString strName = CA2W(friendObj.fullName.c_str());
         strName.MakeLower();
         if (strSearch.IsEmpty() || strName.Find(strSearch) != -1) {
             m_vecFriendDisplay.push_back(friendObj);

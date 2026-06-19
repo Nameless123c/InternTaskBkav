@@ -1,11 +1,16 @@
 #pragma once
 #include "afxdialogex.h"
 #include "Friend.h"
+#include "CChatFriendDlg.h"
+#include <map>
+#include <string>
+#include <vector>
 
 
 
 class CHomeChatDlg : public CDialogEx{
 	DECLARE_DYNAMIC(CHomeChatDlg)
+	
 
 public:
 	CHomeChatDlg(CWnd* pParent = nullptr); 
@@ -31,6 +36,7 @@ public:
 	int m_nTotalFriendHeight = 0;
 	std::vector<Friend> m_vecFriendDisplay;
 	CFont m_fontTitle;
+	std::map<std::string, CChatFriendDlg*> m_mapChatWindows;
 
 	afx_msg void OnPaint();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
