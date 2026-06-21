@@ -7,6 +7,7 @@
 #include "FileService.h"
 #include "PaintService.h"
 #include "DatabaseService.h"
+#include "Nickname.h"
 
 
 IMPLEMENT_DYNAMIC(CHomeChatDlg, CDialogEx)
@@ -41,6 +42,7 @@ BOOL CHomeChatDlg::OnInitDialog()
     GetFiendList();
     GetUserData();
     m_vecFriendDisplay = theApp.m_vecFriend;
+    GetNickname();
 
     CWnd* pArea = GetDlgItem(IDC_STATIC_HOMECHAT_FRIENDAREA);
     if (pArea) {
@@ -143,6 +145,58 @@ void CHomeChatDlg::GetUserData()
                 sqlite3_finalize(stmt);
             }
         }
+        else if (jsonRes["status"] == 0) {
+            nlohmann::json jsonRes = nlohmann::json::parse(res);
+
+            std::string msg = jsonRes["message"];
+            GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
+            GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
+            GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
+        }
+    }
+}
+
+void CHomeChatDlg::GetNickname() {
+    std::string url = "http://localhost:8888/api/user/nickname/list";
+    std::string token = theApp.m_userData.token;
+
+    std::string res = ApiService::SendGetRequest(url, token);
+
+    if (res == "") {
+        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
+        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
+        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
+    }
+    else {
+        nlohmann::json jsonRes = nlohmann::json::parse(res);
+        if (jsonRes["status"] == 1) {
+            if (jsonRes.contains("data") && jsonRes["data"].is_array()) {
+                theApp.m_mapNickname.clear();
+
+                for (const auto& item : jsonRes["data"]) {
+                    std::string friendId = item.value("FriendID", "");
+
+                    if (!friendId.empty()) {
+                        NicknameInfo info;
+                        info.userId = item.value("UserID", "");
+                        info.friendId = friendId;
+                        info.nickname = item.value("Nickname", "");
+
+                        theApp.m_mapNickname[friendId] = info;
+                    }
+                }
+
+            }
+        }
+        else if (jsonRes["status"] == 0) {
+            nlohmann::json jsonRes = nlohmann::json::parse(res);
+
+            std::string msg = jsonRes["message"];
+            GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
+            GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
+            GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
+        }
+    
     }
 }
 
@@ -178,8 +232,17 @@ void CHomeChatDlg::DrawFriendList(CDC* pDC)
         }
 
         pDC->SetBkMode(TRANSPARENT);
-        CString strName(CA2W(friendObj.fullName.c_str(), CP_UTF8));
-        pDC->TextOut((int)(m_rectFriendArea.left + iconSize + 20),(int)(currentY + (iconSize / 4)),strName);
+
+        CString strDisplayName;
+        auto it = theApp.m_mapNickname.find(friendObj.friendId);
+        if (it != theApp.m_mapNickname.end()) {
+            strDisplayName = CA2W(it->second.nickname.c_str(), CP_UTF8);
+        }
+        else {
+            strDisplayName = CA2W(friendObj.fullName.c_str(), CP_UTF8);
+        }
+
+        pDC->TextOut((int)(m_rectFriendArea.left + iconSize + 20),(int)(currentY + (iconSize / 4)), strDisplayName);
 
         int dotSize = iconSize / 4;
         int dotX = m_rectFriendArea.left + padding + iconSize - dotSize * 1.3;
@@ -286,6 +349,7 @@ void CHomeChatDlg::OnTimer(UINT_PTR nIDEvent) {
         theApp.m_vecFriend.clear();
         GetFiendList();
         m_vecFriendDisplay = theApp.m_vecFriend;
+        GetNickname();
         InvalidateRect(&m_rectFriendArea, TRUE);
     }
     CDialogEx::OnTimer(nIDEvent);

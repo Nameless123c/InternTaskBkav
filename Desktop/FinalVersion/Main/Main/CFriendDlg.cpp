@@ -5,6 +5,8 @@
 #include "PaintService.h"
 #include "CChatFriendDlg.h"
 #include "FileService.h"
+#include "nlohmann/json.hpp"
+#include "ApiService.h"
 
 
 IMPLEMENT_DYNAMIC(CFriendDlg, CDialogEx)
@@ -47,9 +49,7 @@ BOOL CFriendDlg::OnInitDialog()
 	m_btnNickName.SetTextColor(RGB(255, 255, 255));
 
 	// tên
-	m_fontTitle.CreateFont(20, 0, 0, 0, 0, FALSE, FALSE, 0,
-		ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Segoe UI Semibold"));
+	m_fontTitle.CreatePointFont(120, _T("Segoe UI Semibold"));
 
 	GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->SetFont(&m_fontTitle);
 
@@ -79,22 +79,58 @@ void CFriendDlg::OnPaint()
             rectAvt.Width(), rectAvt.Height());
     }
 
-    GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->ShowWindow(SW_SHOW);
-    GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->SetWindowText(CA2W(m_friendData.fullName.c_str(), CP_UTF8));
+	// hiển thị nickname
+	GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->ShowWindow(SW_SHOW);
 
+	std::string friendId = m_friendData.friendId;
+	CString strDisplayName = CA2W(m_friendData.fullName.c_str(), CP_UTF8);
+	auto it = theApp.m_mapNickname.find(friendId);
+	if (it != theApp.m_mapNickname.end()) {
+		strDisplayName = CA2W(it->second.nickname.c_str(), CP_UTF8);
+	}
+
+	GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->SetWindowText(strDisplayName);
 }
 
 void CFriendDlg::OnBnClickedBtnFriendSubmit()
 {
 	CString nickName;
 	GetDlgItemText(IDC_EDIT_FRIEND_NICKNAME, nickName);
+	CEdit* pEdit = (CEdit*)GetDlgItem(IDC_EDIT_FRIEND_NICKNAME);
+	if (pEdit) pEdit->SetWindowText(_T(""));
 
 	if (nickName == _T("")) {
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_HIDE);
 		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_SHOW);
 		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->SetWindowTextW(_T("Bạn chưa nhập biệt danh cho đối phương!"));
 	}
 	else {
+		std::string url = "http://localhost:8888/api/user/nickname/update";
 
+		std::string FriendID = m_friendData.friendId;
+		std::string Nickname = CW2A(nickName.GetString(), CP_UTF8);
+
+		nlohmann::json data;
+
+		data["FriendID"] = FriendID;
+		data["Nickname"] = Nickname;
+
+		std::string res = ApiService::SendPostRequest(url, data, theApp.m_userData.token);
+
+		if (res == "") {
+			GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_SHOW);
+			GetDlgItem(IDC_STATIC_FRIEND_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
+		}
+		else {
+			nlohmann::json jsonRes = nlohmann::json::parse(res);
+
+			std::string msg = jsonRes["message"];
+			GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_SHOW);
+			GetDlgItem(IDC_STATIC_FRIEND_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
+			
+		}
 	}
 }
 

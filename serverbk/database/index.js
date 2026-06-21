@@ -23,6 +23,7 @@ module.exports = {
     mongoose,
     models: {
         Users: require('./schemas/users'),
-        Message: require('./schemas/message')
+        Message: require('./schemas/message'),
+        Nickname: require('./schemas/nickname')
     }
 }

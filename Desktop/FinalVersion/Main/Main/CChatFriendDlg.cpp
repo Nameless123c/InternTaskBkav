@@ -17,6 +17,7 @@ BEGIN_MESSAGE_MAP(CChatFriendDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_WM_CTLCOLOR()
 	ON_STN_CLICKED(IDC_STATIC_CHATFRIEND_FULLNAME, &CChatFriendDlg::OnStnClickedStaticChatfriendFullname)
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 CChatFriendDlg::CChatFriendDlg(CWnd* pParent /*=nullptr*/)
@@ -76,9 +77,7 @@ BOOL CChatFriendDlg::OnInitDialog() {
 		pEdit->SetCueBanner(_T("Nhập tin nhắn..."));
 	}
 
-	m_fontTitle.CreateFont(20, 0, 0, 0, 0, FALSE, FALSE, 0,
-		ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Segoe UI Semibold"));
+	m_fontTitle.CreatePointFont(120, _T("Segoe UI Semibold"));
 
 	GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME)->SetFont(&m_fontTitle);
 
@@ -93,8 +92,24 @@ void CChatFriendDlg::OnPaint() {
 	CPaintDC dc(this);
 	PaintService::DrawAppBar(this, IDC_STATIC_CHATFRIEND_APPBAR, &dc);
 
+	// hiển thị nickname
 	GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME)->SetWindowText(CA2W(m_currentFriend.fullName.c_str(), CP_UTF8));
+
+	std::string friendId = m_currentFriend.friendId;
+	CString strDisplayName = CA2W(m_currentFriend.fullName.c_str(), CP_UTF8);
+	auto it = theApp.m_mapNickname.find(friendId);
+	if (it != theApp.m_mapNickname.end()) {
+		strDisplayName = CA2W(it->second.nickname.c_str(), CP_UTF8);
+	}
+
+	GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME)->SetWindowText(strDisplayName);
+
+	// Hiển thị ra UI
+	CWnd* pLabel = GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME);
+	if (pLabel) {
+		pLabel->ShowWindow(SW_SHOW);
+		pLabel->SetWindowText(strDisplayName);
+	}
 
 	PaintService::DrawIcon(&dc, m_pImgSend, m_rectSendBtn.left, m_rectSendBtn.top, m_rectSendBtn.Width(), m_rectSendBtn.Height());
 	PaintService::DrawIcon(&dc, m_pImgEmoji, m_rectEmojiBtn.left, m_rectEmojiBtn.top, m_rectEmojiBtn.Width(), m_rectEmojiBtn.Height());
@@ -349,6 +364,17 @@ void CChatFriendDlg::OnStnClickedStaticChatfriendFullname()
 
 	m_friendDlg.m_friendData = this->m_currentFriend;
 
+	m_friendDlg.GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_HIDE);
+
 	m_friendDlg.ShowWindow(SW_SHOW);
 	m_friendDlg.BringWindowToTop();
+}
+
+void CChatFriendDlg::OnClose() {
+	if (m_isFriendDlgCreated && ::IsWindow(m_friendDlg.GetSafeHwnd())) {
+		m_friendDlg.DestroyWindow(); // Hủy cửa sổ Friend
+		m_isFriendDlgCreated = FALSE; // Reset lại cờ
+	}
+
+	CDialogEx::OnClose();
 }

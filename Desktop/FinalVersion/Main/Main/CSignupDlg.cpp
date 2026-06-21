@@ -35,9 +35,7 @@ BOOL CSignupDlg::OnInitDialog() {
 
 	SetBackgroundColor(RGB(255, 255, 255));
 
-	m_fontTitle.CreateFont(20, 0, 0, 0, 0, FALSE, FALSE, 0,
-		ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Segoe UI Semibold"));
+	m_fontTitle.CreatePointFont(120, _T("Segoe UI Semibold"));
 
 	GetDlgItem(IDC_STATIC_SIGNUP_TITLE)->SetFont(&m_fontTitle);
 

@@ -69,5 +69,64 @@ module.exports = () => {
             return res.status(400).json({ status: 0, data: null, message: error.message })
         }
     })
+
+    router.post('/nickname/update', async (req, res) => {
+        try {
+            const UserID = req.UserID;
+            const { FriendID, Nickname } = req.body;
+
+            if (!FriendID || !Nickname) {
+                return res.status(400).json({ status: 0, message: "Thiếu FriendID hoặc Nickname" });
+            }
+
+            // 1. Kiểm tra UserID (người thực hiện) có tồn tại không
+            const ownerExists = await models.Users.findOne({ _id: new ObjectId(UserID) });
+            if (!ownerExists) {
+                return res.status(400).json({ status: 0, message: "User not found" });
+            }
+
+            // 2. (Tùy chọn) Kiểm tra FriendID có tồn tại trong hệ thống không
+            const friendExists = await models.Users.findOne({ _id: new ObjectId(FriendID) });
+            if (!friendExists) {
+                return res.status(400).json({ status: 0, message: "Friend not found" });
+            }
+
+            // 3. Xây dựng updateObject và thực hiện update
+            const updateObject = {
+                Nickname: Nickname,
+                UpdateAt: new Date()
+            };
+
+            await models.Nickname.findOneAndUpdate(
+                { UserID: new ObjectId(UserID), FriendID: new ObjectId(FriendID) },
+                updateObject,
+                { upsert: true, new: true }
+            );
+
+            return res.status(200).json({ status: 1, message: "Cập nhật thành công" });
+        } catch (error) {
+            return res.status(400).json({ status: 0, message: error.message });
+        }
+    })
+
+    router.get('/nickname/list', async (req, res) => {
+        try {
+            const UserID = req.UserID;
+
+            // 1. Kiểm tra xem UserID có tồn tại trong hệ thống không
+            const userExists = await models.Users.findOne({ _id: new ObjectId(UserID) });
+            if (!userExists) {
+                return res.status(400).json({ status: 0, message: "User not found" });
+            }
+
+            // 2. Lấy danh sách nickname của User đó
+            const list = await models.Nickname.find({ UserID: new ObjectId(UserID) });
+            
+            return res.status(200).json({ status: 1, data: list });
+        } catch (error) {
+            return res.status(400).json({ status: 0, message: error.message });
+        }
+    })
+
     return router
 }

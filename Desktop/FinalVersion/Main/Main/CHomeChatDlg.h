@@ -30,6 +30,7 @@ public:
 	void GetFiendList();
 	void GetUserData();
 	void DrawFriendList(CDC* pDC);
+	void GetNickname();
 
 	CRect m_rectFriendArea;
 	int m_nFriendScrollPos = 0;
