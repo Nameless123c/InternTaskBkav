@@ -58,4 +58,6 @@ public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnStnClickedStaticChatfriendFullname();
 	afx_msg void OnClose();
+	afx_msg void OnStnClickedStaticChatfriendExit();
+	afx_msg LRESULT OnNcHitTest(CPoint point);
 };

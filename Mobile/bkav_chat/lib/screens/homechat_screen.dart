@@ -55,7 +55,7 @@ class _HomechatScreen extends State<HomechatScreen> {
   }
 
   Future<void> _getUserData() async {
-    String url = "http://10.0.2.2:8888/api/user/info";
+    String url = "http://localhost:8888/api/user/info";
     String token = SessionManager.token!;
     String res = await ApiService.sendGetRequest(url, token: token);
     if (res == "") return;
@@ -72,7 +72,7 @@ class _HomechatScreen extends State<HomechatScreen> {
 
   Future<void> _getFriendList() async {
     SessionManager.friendList.clear();
-    String url = "http://10.0.2.2:8888/api/message/list-friend";
+    String url = "http://localhost:8888/api/message/list-friend";
     String token = SessionManager.token!;
     String res = await ApiService.sendGetRequest(url, token: token);
     if (res == "") return;

@@ -27,6 +27,7 @@ CMainApp theApp;
 void CMainApp::Logout() {
 	m_userData = User();
 	m_vecFriend.clear();
+    m_mapNickname.clear();
 }
 
 
@@ -82,8 +83,14 @@ BOOL CMainApp::InitInstance(){
         }
         else if (curDlg == IDD_HOMECHAT_DIALOG) {
             CHomeChatDlg dlg;
-            dlg.DoModal(); 
-            running = FALSE;
+            INT_PTR nResponse = dlg.DoModal();
+
+            if (nResponse == ID_LOGIN_TRIGGER) {
+                curDlg = IDD_LOGIN_DIALOG;
+            }
+            else {
+                running = FALSE;
+            }
         }
     }
 

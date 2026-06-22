@@ -4,12 +4,12 @@
 #include <curl/curl.h>
 #include "ApiService.h"
 
-size_t WriteCallBack(void* contents, size_t size, size_t nmenb, void* userp) {
-	size_t total_size = size * nmenb;
+size_t WriteCallBack(void* contents, size_t size, size_t nmemb, void* userp) {
+	size_t total_size = size * nmemb;
 
 	std::string* str = static_cast<std::string*>(userp);
-
-	str->append(static_cast<char*>(contents), total_size);
+	
+	str->append(static_cast<const char*>(contents), total_size);
 
 	return total_size;
 }
@@ -82,3 +82,39 @@ std::string ApiService::SendPostRequest(const std::string& url, const nlohmann::
 	return (res == CURLE_OK) ? readBuffer : "";
 }
 
+size_t WriteFileCallBack(void* contents, size_t size, size_t nmemb, void* userp) {
+	FILE* file = static_cast<FILE*>(userp);
+	return fwrite(contents, size, nmemb, file);
+}
+
+bool ApiService::DownloadFile(const std::string& url, const std::string& savePath, const std::string& token) {
+	CURL* curl = curl_easy_init();
+	if (!curl) return false;
+
+	FILE* fp = fopen(savePath.c_str(), "wb");
+	if (!fp) {
+		curl_easy_cleanup(curl);
+		return false;
+	}
+
+	struct curl_slist* headers = NULL;
+	if (!token.empty()) {
+		std::string authHeader = "Authorization: Bearer " + token;
+		headers = curl_slist_append(headers, authHeader.c_str());
+	}
+
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteFileCallBack);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp); 
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3600L);
+
+	CURLcode res = curl_easy_perform(curl);
+
+	fclose(fp); // Đóng file sau khi ghi xong
+	if (headers) curl_slist_free_all(headers);
+	curl_easy_cleanup(curl);
+
+	return (res == CURLE_OK);
+}

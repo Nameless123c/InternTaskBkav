@@ -28,4 +28,6 @@ public:
 	CMFCButton m_btnNickName;
 	afx_msg void OnBnClickedBtnFriendSubmit();
 	CFont m_fontTitle;
+	afx_msg void OnStnClickedStaticFriendExit();
+	afx_msg LRESULT OnNcHitTest(CPoint point);
 };

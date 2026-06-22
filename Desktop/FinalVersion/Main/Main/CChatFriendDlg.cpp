@@ -18,6 +18,8 @@ BEGIN_MESSAGE_MAP(CChatFriendDlg, CDialogEx)
 	ON_WM_CTLCOLOR()
 	ON_STN_CLICKED(IDC_STATIC_CHATFRIEND_FULLNAME, &CChatFriendDlg::OnStnClickedStaticChatfriendFullname)
 	ON_WM_CLOSE()
+	ON_STN_CLICKED(IDC_STATIC_CHATFRIEND_EXIT, &CChatFriendDlg::OnStnClickedStaticChatfriendExit)
+	ON_WM_NCHITTEST()
 END_MESSAGE_MAP()
 
 CChatFriendDlg::CChatFriendDlg(CWnd* pParent /*=nullptr*/)
@@ -351,6 +353,15 @@ HBRUSH CChatFriendDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 		return (HBRUSH)brush.GetSafeHandle();
 	}
 
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_CHATFRIEND_EXIT) {
+		pDC->SetTextColor(RGB(0, 0, 0));
+
+		pDC->SetBkColor(RGB(217, 217, 217));
+
+		static CBrush brush(RGB(217, 217, 217));
+		return (HBRUSH)brush.GetSafeHandle();
+	}
+
 	return hbr;
 }
 
@@ -378,3 +389,19 @@ void CChatFriendDlg::OnClose() {
 
 	CDialogEx::OnClose();
 }
+
+void CChatFriendDlg::OnStnClickedStaticChatfriendExit(){
+	EndDialog(ID_EXIT_TRIGGER);
+}
+
+
+LRESULT CChatFriendDlg::OnNcHitTest(CPoint point){
+	LRESULT hit = CDialogEx::OnNcHitTest(point);
+
+	if (hit == HTCLIENT) {
+		return HTCAPTION;
+	}
+
+	return hit;
+}
+

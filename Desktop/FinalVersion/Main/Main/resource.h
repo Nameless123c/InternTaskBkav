@@ -2,12 +2,15 @@
 // Microsoft Visual C++ generated include file.
 // Used by Main.rc
 //
+#define WM_USER_LOGOUT_SIGNAL (WM_USER + 200)
+
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_LOGIN_DIALOG                102
 #define IDD_SIGNUP_DIALOG               103
 #define IDD_HOMECHAT_DIALOG             132
 #define IDD_CHATFRIEND_DIALOG           134
 #define IDD_FRIEND_DIALOG               136
+#define IDD_USER_DIALOG                 138
 #define IDC_STATIC_LOGIN_TITLE          1000
 #define IDC_STATIC_LOGIN_USERNAME       1001
 #define IDC_STATIC_LOGIN_PASSWORD       1002
@@ -17,6 +20,7 @@
 #define IDC_BTN_LOGIN_SUBMIT            1006
 #define IDC_STATIC_LOGIN_GOTO_SIGNUP    1007
 #define IDC_STATIC_LOGIN_ERROR          1008
+#define IDC_STATIC_LOGIN_USERNAME2      1009
 #define IDC_EDIT_SIGNUP_FULLNAME        1010
 #define IDC_STATIC_SIGNUP_FULLNAME      1011
 #define IDC_STATIC_SIGNUP_USERNAME      1012
@@ -38,6 +42,7 @@
 #define IDC_EDIT_CHATFRIEND_SEND        1029
 #define IDC_STATIC_CHATFRIEND_FULLNAME  1030
 #define IDC_STATIC_HOMECHAT_AVT         1031
+#define IDC_STATIC_SIGNUP_GOTO_LOGIN    1031
 #define IDC_STATIC_CHATFRIEND_SEND      1032
 #define IDC_STATIC_HOMECHAT_FRIENDAREA  1033
 #define IDC_STATIC_CHATFRIEND_EMOJI     1034
@@ -47,24 +52,34 @@
 #define IDC_STATIC_CHATFRIEND_ATTACH    1038
 #define IDC_STATIC_SIGNUP_TITLE         1039
 #define IDC_STATIC_CHATFRIEND_APPBAR    1040
-#define IDC_STATIC_SIGNUP_GOTO_LOGIN    1031
 #define IDC_EDIT_FRIEND_NICKNAME        1042
 #define IDC_BTN_FRIEND_SUBMIT           1043
 #define IDC_STATIC_FRIEND_AVT           1044
 #define IDC_STATIC_FRIEND_NICKNAME      1045
 #define IDC_STATIC_FRIEND_ERROR         1046
+#define IDC_STATIC_LOGIN_EXIT           1046
+#define IDC_STATIC_SIGNUP_EXIT          1047
+#define IDC_STATIC_CHATFRIEND_EXIT      1048
+#define IDC_STATIC_FRIEND_EXIT          1049
+#define IDC_STATIC_USER_AVT             1050
+#define IDC_STATIC_USER_CHANGEAVT       1051
+#define IDC_BTN_USER_LOGOUT             1052
+#define IDC_STATIC_USER_EXIT            1053
+#define IDC_STATIC_USER_TITLE           1054
+#define IDC_STATIC_USER_APPBAR          1055
 #define ID_LOGIN_TRIGGER                1101
 #define ID_SIGNUP_TRIGGER               1102
 #define ID_HOMECHAT_TRIGGER             1103
 #define ID_CHATFRIEND_TRIGGER           1104
+#define ID_EXIT_TRIGGER                 1105
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        138
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1046
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -58,7 +58,7 @@ class _ChatFriendScreen extends State<ChatfriendScreen> {
   }
 
   Future<List<Message>> _getMessage() async {
-    String url = "http://10.0.2.2:8888/api/message/get-message?FriendID=${SessionManager.selectedFriend!.friendId}";
+    String url = "http://localhost:8888/api/message/get-message?FriendID=${SessionManager.selectedFriend!.friendId}";
     String token = SessionManager.token!;
 
     String res = await ApiService.sendGetRequest(url, token: token);
@@ -86,7 +86,7 @@ class _ChatFriendScreen extends State<ChatfriendScreen> {
     String content = _textController.text.trim();
     if (content.isEmpty) return;
 
-    String url = "http://10.0.2.2:8888/api/message/send-message";
+    String url = "http://localhost:8888/api/message/send-message";
     Map<String, dynamic> data = {
       "FriendID": SessionManager.selectedFriend!.friendId,
       "Content": content,

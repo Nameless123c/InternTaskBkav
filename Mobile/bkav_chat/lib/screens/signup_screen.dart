@@ -47,13 +47,13 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    String url = "http://10.0.2.2:8888/api/auth/register";
+    String url = "http://localhost:8888/api/auth/register";
     Map<String, dynamic> data = {
       "FullName": fullName,
       "Username": username,
       "Password": rePass,
     };
-    String? token = null;
+    String? token;
 
     String res = await ApiService.sendPostRequest(url, data, token: token);
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include "Main.h"
 #include "Message.h"
+#include "Nickname.h"
 
 sqlite3* DatabaseService::m_db = nullptr;
 
@@ -55,12 +56,12 @@ void DatabaseService::InitializeSchema() {
         
     // 3. Bảng FriendSettings (Lưu biệt danh)
     ExecuteSQL("CREATE TABLE IF NOT EXISTS FriendSettings ("
-        "ownerId TEXT, "             // Người đặt biệt danh (User hiện tại)
-        "friendId TEXT, "            
+        "id TEXT PRIMARY KEY, "
+        "ownerId TEXT, "
+        "friendId TEXT, "
         "nickname TEXT, "
-        "PRIMARY KEY(ownerId, friendId), " 
-        "FOREIGN KEY(ownerId) REFERENCES Users(userId), "
-        "FOREIGN KEY(friendId) REFERENCES Friends(friendId));");
+        "FOREIGN KEY(ownerId) REFERENCES Users(userId) ON DELETE CASCADE, "
+        "FOREIGN KEY(friendId) REFERENCES Friends(friendId) ON DELETE CASCADE);");
 
     // 4. Bảng Messages (ID lấy từ Server)
     ExecuteSQL("CREATE TABLE IF NOT EXISTS Messages ("
@@ -169,5 +170,33 @@ void DatabaseService::SaveMessageToDB(const Message& msg, const std::string& sen
     }
 
     // 5. Hoàn tất giao dịch
+    ExecuteSQL("COMMIT;");
+}
+
+void DatabaseService::SaveNicknameToDB(const NicknameInfo& info) {
+    ExecuteSQL("BEGIN TRANSACTION;");
+
+    // Câu lệnh SQL: id là khóa chính, nếu đã tồn tại thì ghi đè (replace)
+    std::string sql = "INSERT OR REPLACE INTO FriendSettings (id, ownerId, friendId, nickname) VALUES (?, ?, ?, ?);";
+
+    sqlite3_stmt* stmt;
+    // Chuẩn bị câu lệnh
+    if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        // Bind dữ liệu vào các dấu hỏi chấm (?)
+        // 1: id, 2: ownerId, 3: friendId, 4: nickname
+        sqlite3_bind_text(stmt, 1, info.id.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, info.userId.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, info.friendId.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 4, info.nickname.c_str(), -1, SQLITE_TRANSIENT);
+
+        // Thực thi câu lệnh
+        if (sqlite3_step(stmt) != SQLITE_DONE) {
+            TRACE(_T("Lỗi khi thực hiện lưu nickname vào DB: %s\n"), sqlite3_errmsg(m_db));
+        }
+
+        // Hủy stmt để giải phóng bộ nhớ
+        sqlite3_finalize(stmt);
+    }
+
     ExecuteSQL("COMMIT;");
 }

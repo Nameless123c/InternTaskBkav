@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include "CUserDlg.h"
 
 
 class CHomeChatDlg : public CDialogEx{
@@ -38,6 +38,9 @@ public:
 	std::vector<Friend> m_vecFriendDisplay;
 	CFont m_fontTitle;
 	std::map<std::string, CChatFriendDlg*> m_mapChatWindows;
+	CRect m_rectUserAvatar;
+	CUserDlg* m_pUserDlg = nullptr;
+	bool m_isUserCreate = false;
 
 	afx_msg void OnPaint();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
@@ -45,4 +48,6 @@ public:
 	afx_msg void OnChangeEditHomechatSearch();
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg LRESULT OnLogoutSignal(WPARAM wParam, LPARAM lParam);
 };

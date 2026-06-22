@@ -202,6 +202,7 @@
     <ClInclude Include="CHomeChatDlg.h" />
     <ClInclude Include="CLoginDlg.h" />
     <ClInclude Include="CSignupDlg.h" />
+    <ClInclude Include="CUserDlg.h" />
     <ClInclude Include="DatabaseService.h" />
     <ClInclude Include="FileService.h" />
     <ClInclude Include="framework.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="CHomeChatDlg.cpp" />
     <ClCompile Include="CLoginDlg.cpp" />
     <ClCompile Include="CSignupDlg.cpp" />
+    <ClCompile Include="CUserDlg.cpp" />
     <ClCompile Include="DatabaseService.cpp" />
     <ClCompile Include="FileService.cpp" />
     <ClCompile Include="Main.cpp" />

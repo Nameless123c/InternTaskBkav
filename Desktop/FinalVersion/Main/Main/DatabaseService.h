@@ -4,6 +4,7 @@
 #include "Friend.h"
 #include <vector>
 #include "Message.h"
+#include "Nickname.h"
 
 class DatabaseService {
 public:
@@ -18,4 +19,5 @@ public:
     static sqlite3* m_db;
     static void SyncFriendsToDB(const std::vector<Friend>& friends);
     static void SaveMessageToDB(const Message& msg, const std::string& senderId);
+    static void SaveNicknameToDB(const NicknameInfo& info);
 };

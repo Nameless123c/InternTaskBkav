@@ -14,6 +14,8 @@ BEGIN_MESSAGE_MAP(CLoginDlg, CDialogEx)
 	ON_STN_CLICKED(IDC_STATIC_LOGIN_GOTO_SIGNUP, &CLoginDlg::OnStnClickedStaticLoginGotoSignup)
 	ON_WM_PAINT()
 	ON_WM_CTLCOLOR()
+	ON_STN_CLICKED(IDC_STATIC_LOGIN_EXIT, &CLoginDlg::OnStnClickedStaticLoginExit)
+	ON_WM_NCHITTEST()
 END_MESSAGE_MAP()
 
 CLoginDlg::CLoginDlg(CWnd* pParent)
@@ -183,4 +185,18 @@ HBRUSH CLoginDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 	}
 
 	return hbr;
+}
+
+void CLoginDlg::OnStnClickedStaticLoginExit(){
+	EndDialog(ID_EXIT_TRIGGER);
+}
+
+LRESULT CLoginDlg::OnNcHitTest(CPoint point){
+	LRESULT hit = CDialogEx::OnNcHitTest(point);
+
+	if (hit == HTCLIENT) {
+		return HTCAPTION;
+	}
+
+	return hit;
 }

@@ -25,4 +25,6 @@ public:
 	afx_msg void OnPaint();
 	CMFCButton m_btnSignup;
 	afx_msg void OnStnClickedStaticSignupGotoLogin();
+	afx_msg void OnStnClickedStaticSignupExit();
+	afx_msg LRESULT OnNcHitTest(CPoint point);
 };

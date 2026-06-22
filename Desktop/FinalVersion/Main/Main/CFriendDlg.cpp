@@ -15,6 +15,8 @@ BEGIN_MESSAGE_MAP(CFriendDlg, CDialogEx)
 	ON_WM_PAINT()
     ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDC_BTN_FRIEND_SUBMIT, &CFriendDlg::OnBnClickedBtnFriendSubmit)
+	ON_STN_CLICKED(IDC_STATIC_FRIEND_EXIT, &CFriendDlg::OnStnClickedStaticFriendExit)
+	ON_WM_NCHITTEST()
 END_MESSAGE_MAP()
 
 CFriendDlg::CFriendDlg(CWnd* pParent /*=nullptr*/)
@@ -49,6 +51,9 @@ BOOL CFriendDlg::OnInitDialog()
 	m_btnNickName.SetTextColor(RGB(255, 255, 255));
 
 	// tên
+	if (m_fontTitle.GetSafeHandle() != nullptr) {
+		m_fontTitle.DeleteObject(); 
+	}
 	m_fontTitle.CreatePointFont(120, _T("Segoe UI Semibold"));
 
 	GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->SetFont(&m_fontTitle);
@@ -156,3 +161,19 @@ HBRUSH CFriendDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 	return hbr;
 }
 
+
+void CFriendDlg::OnStnClickedStaticFriendExit(){
+	EndDialog(ID_EXIT_TRIGGER);
+}
+
+
+
+LRESULT CFriendDlg::OnNcHitTest(CPoint point){
+	LRESULT hit = CDialogEx::OnNcHitTest(point);
+
+	if (hit == HTCLIENT) {
+		return HTCAPTION;
+	}
+
+	return hit;
+}

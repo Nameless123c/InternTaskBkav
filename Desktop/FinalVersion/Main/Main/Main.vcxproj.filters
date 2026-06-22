@@ -102,6 +102,9 @@
     <ClInclude Include="Nickname.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
+    <ClInclude Include="CUserDlg.h">
+      <Filter>Header Files\Dialogs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -150,6 +153,9 @@
       <Filter>Source Files\Models</Filter>
     </ClCompile>
     <ClCompile Include="CFriendDlg.cpp">
+      <Filter>Source Files\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="CUserDlg.cpp">
       <Filter>Source Files\Dialogs</Filter>
     </ClCompile>
   </ItemGroup>

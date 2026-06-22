@@ -19,6 +19,8 @@ BEGIN_MESSAGE_MAP(CHomeChatDlg, CDialogEx)
     ON_EN_CHANGE(IDC_EDIT_HOMECHAT_SEARCH, &CHomeChatDlg::OnChangeEditHomechatSearch)
     ON_WM_CTLCOLOR()
     ON_WM_TIMER()
+    ON_WM_NCHITTEST()
+    ON_MESSAGE(WM_USER_LOGOUT_SIGNAL, &CHomeChatDlg::OnLogoutSignal)
 END_MESSAGE_MAP()
 
 CHomeChatDlg::CHomeChatDlg(CWnd* pParent /*=nullptr*/)
@@ -51,6 +53,13 @@ BOOL CHomeChatDlg::OnInitDialog()
         pArea->ShowWindow(SW_HIDE);
     }
 
+    CWnd* pAvatar = GetDlgItem(IDC_STATIC_HOMECHAT_AVT);
+    if (pAvatar) {
+        pAvatar->GetWindowRect(&m_rectUserAvatar);
+        ScreenToClient(&m_rectUserAvatar);
+        pAvatar->ShowWindow(SW_HIDE);
+    }
+
     m_nFriendScrollPos = 0;
     m_nTotalFriendHeight = 0;
 
@@ -78,16 +87,12 @@ void CHomeChatDlg::OnPaint()
         pEdit->SetCueBanner(_T("Tìm kiếm"));
     }
 
-    CWnd* pArea = GetDlgItem(IDC_STATIC_HOMECHAT_AVT);
-    if (pArea) {
-        CRect rectAvt;
-        pArea->GetWindowRect(&rectAvt);
-        ScreenToClient(&rectAvt);
-        pArea->ShowWindow(SW_HIDE);
-
+    if (theApp.m_userData.pAvatar != nullptr && !theApp.m_userData.pAvatar->IsNull()) {
         PaintService::DrawAvatar(&dc, theApp.m_userData.pAvatar,
-            rectAvt.left, rectAvt.top,
-            rectAvt.Width(), rectAvt.Height());
+            m_rectUserAvatar.left,
+            m_rectUserAvatar.top,
+            m_rectUserAvatar.Width(),
+            m_rectUserAvatar.Height());
     }
 
     DrawFriendList(&dc);
@@ -178,10 +183,12 @@ void CHomeChatDlg::GetNickname() {
 
                     if (!friendId.empty()) {
                         NicknameInfo info;
+                        info.id = item.value("_id", "");
                         info.userId = item.value("UserID", "");
                         info.friendId = friendId;
                         info.nickname = item.value("Nickname", "");
 
+                        DatabaseService::SaveNicknameToDB(info);
                         theApp.m_mapNickname[friendId] = info;
                     }
                 }
@@ -208,8 +215,8 @@ void CHomeChatDlg::DrawFriendList(CDC* pDC)
 
     // Tính toán tỉ lệ động dựa trên chiều cao vùng chứa
     int areaHeight = m_rectFriendArea.Height();
-    int itemHeight = areaHeight / 2;
-    int iconSize = itemHeight - 10;
+    int itemHeight = areaHeight / 3;
+    int iconSize = itemHeight - 5;
     int padding = 10;
 
     CFont font;
@@ -280,7 +287,7 @@ BOOL CHomeChatDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 void CHomeChatDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
     if (m_rectFriendArea.PtInRect(point)) {
-        int itemHeight = m_rectFriendArea.Height() / 2;
+        int itemHeight = m_rectFriendArea.Height() / 3;
         int relativeY = point.y - m_rectFriendArea.top + m_nFriendScrollPos;
         int clickedIndex = relativeY / itemHeight;
 
@@ -303,8 +310,21 @@ void CHomeChatDlg::OnLButtonDown(UINT nFlags, CPoint point)
             it->second->GetMessage();
         }
     }
+
+    if (m_rectUserAvatar.PtInRect(point)) {
+        if (!m_isUserCreate) { 
+            m_pUserDlg = new CUserDlg();
+            if (m_pUserDlg->Create(IDD_USER_DIALOG, this)) {
+                m_pUserDlg->ShowWindow(SW_SHOW);
+                m_isUserCreate = true;
+            }
+        }
+        return;
+    }
+
     CDialogEx::OnLButtonDown(nFlags, point);
 }
+
 
 void CHomeChatDlg::OnChangeEditHomechatSearch()
 {
@@ -353,4 +373,37 @@ void CHomeChatDlg::OnTimer(UINT_PTR nIDEvent) {
         InvalidateRect(&m_rectFriendArea, TRUE);
     }
     CDialogEx::OnTimer(nIDEvent);
+}
+
+LRESULT CHomeChatDlg::OnNcHitTest(CPoint point){
+    CPoint pt = point;
+    ScreenToClient(&pt);
+
+    if (m_rectFriendArea.PtInRect(pt)) {
+        return HTCLIENT;
+    }
+
+    if (m_rectUserAvatar.PtInRect(pt)) {
+        return HTCLIENT;
+    }
+
+    return HTCAPTION;
+}
+
+LRESULT CHomeChatDlg::OnLogoutSignal(WPARAM wParam, LPARAM lParam) {
+    // 1. Gọi hàm dọn dẹp dữ liệu trong App
+    theApp.Logout();
+
+    // 2. Đóng tất cả các cửa sổ chat con đang mở (để tránh lỗi truy cập bộ nhớ sau khi logout)
+    for (auto& pair : m_mapChatWindows) {
+        if (pair.second && ::IsWindow(pair.second->GetSafeHwnd())) {
+            pair.second->DestroyWindow();
+            delete pair.second;
+        }
+    }
+    m_mapChatWindows.clear();
+
+    // 3. Đóng HomeChat và trả về mã tín hiệu cho vòng lặp của App
+    EndDialog(ID_LOGIN_TRIGGER);
+    return 0;
 }
