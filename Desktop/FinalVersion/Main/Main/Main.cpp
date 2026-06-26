@@ -48,10 +48,7 @@ BOOL CMainApp::InitInstance(){
 
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 	
-	if (DatabaseService::OpenDB("chat_client.db")) {
-		DatabaseService::InitializeSchema();
-	}
-
+	
     bool running = TRUE;
     INT curDlg = IDD_LOGIN_DIALOG;
 
@@ -64,8 +61,15 @@ BOOL CMainApp::InitInstance(){
                 curDlg = IDD_SIGNUP_DIALOG;
             }
             else if (nResponse == ID_HOMECHAT_TRIGGER) {
-                curDlg = IDD_HOMECHAT_DIALOG;
-            }
+
+                bool success = DatabaseService::InitializeUserDB(theApp.m_userData.username, theApp.m_userData.password);
+
+                if (success) {
+                    DatabaseService::SaveUserInfo(theApp.m_userData);
+
+                    curDlg = IDD_HOMECHAT_DIALOG;
+                }
+            }   
             else {
                 running = FALSE;
             }

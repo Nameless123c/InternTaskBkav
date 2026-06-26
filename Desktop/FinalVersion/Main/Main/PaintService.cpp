@@ -6,10 +6,17 @@ void PaintService::DrawAvatar(CDC* pDC, CImage* pImage, int x, int y, int w, int
 
     int nSaved = pDC->SaveDC();
 
+    // 1. GIỚI HẠN VÙNG VẼ: Chỉ cho phép vẽ bên trong hình chữ nhật này
+    // Điều này chặn đứng việc avatar vẽ lấn ra ngoài
+    pDC->IntersectClipRect(x, y, x + w, y + h);
+
+    // 2. CẮT HÌNH TRÒN: 
     CRgn circleRgn;
     circleRgn.CreateEllipticRgn(x, y, x + w, y + h);
-    pDC->SelectClipRgn(&circleRgn);
+    pDC->SelectClipRgn(&circleRgn, RGN_AND); // RGN_AND đảm bảo nó nằm gọn trong IntersectClipRect ở trên
 
+    // 3. VẼ
+    pDC->SetStretchBltMode(HALFTONE);
     pImage->StretchBlt(pDC->GetSafeHdc(), x, y, w, h, SRCCOPY);
 
     pDC->RestoreDC(nSaved);

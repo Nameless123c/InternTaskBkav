@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 #include "CUserDlg.h"
+#include <map>
+#include "Nickname.h"
 
 
 class CHomeChatDlg : public CDialogEx{
@@ -27,10 +29,10 @@ protected:
 
 public:
 	virtual BOOL OnInitDialog();
-	void GetFiendList();
+	bool GetFiendList();
 	void GetUserData();
 	void DrawFriendList(CDC* pDC);
-	void GetNickname();
+	bool GetNickname();
 
 	CRect m_rectFriendArea;
 	int m_nFriendScrollPos = 0;
@@ -41,6 +43,8 @@ public:
 	CRect m_rectUserAvatar;
 	CUserDlg* m_pUserDlg = nullptr;
 	bool m_isUserCreate = false;
+	std::vector<Friend> m_tempFriendList;
+	std::map<std::string, NicknameInfo> m_tempNickname;
 
 	afx_msg void OnPaint();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);

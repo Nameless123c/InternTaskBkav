@@ -41,10 +41,14 @@ BOOL CHomeChatDlg::OnInitDialog()
 {
     CDialogEx::OnInitDialog();
 
-    GetFiendList();
+    if (GetFiendList() && GetNickname()) {
+        theApp.m_vecFriend = m_tempFriendList;
+        theApp.m_mapNickname = m_tempNickname;
+    }
+    
     GetUserData();
     m_vecFriendDisplay = theApp.m_vecFriend;
-    GetNickname();
+    
 
     CWnd* pArea = GetDlgItem(IDC_STATIC_HOMECHAT_FRIENDAREA);
     if (pArea) {
@@ -98,7 +102,7 @@ void CHomeChatDlg::OnPaint()
     DrawFriendList(&dc);
 }
 
-void CHomeChatDlg::GetFiendList()
+bool CHomeChatDlg::GetFiendList()
 {
     std::string url = "http://localhost:8888/api/message/list-friend";
     std::string token = theApp.m_userData.token;
@@ -108,6 +112,7 @@ void CHomeChatDlg::GetFiendList()
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
+        return false;
     }
     else {
         nlohmann::json jsonRes = nlohmann::json::parse(res);
@@ -124,12 +129,14 @@ void CHomeChatDlg::GetFiendList()
                 }
 
                 f.pAvatar = FileService::LoadImageFromFile(f.avatar);
-                theApp.m_vecFriend.push_back(f);
-                DatabaseService::SyncFriendsToDB(theApp.m_vecFriend);
+                m_tempFriendList.push_back(f);
+                DatabaseService::SyncFriendsToDB(m_tempFriendList);
             }
-            DatabaseService::SyncFriendsToDB(theApp.m_vecFriend);
+            DatabaseService::SyncFriendsToDB(m_tempFriendList);
+            return true;
         }
     }
+    return false;
 }
 
 void CHomeChatDlg::GetUserData()
@@ -176,7 +183,7 @@ void CHomeChatDlg::GetUserData()
     }
 }
 
-void CHomeChatDlg::GetNickname() {
+bool CHomeChatDlg::GetNickname() {
     std::string url = "http://localhost:8888/api/user/nickname/list";
     std::string token = theApp.m_userData.token;
 
@@ -186,12 +193,14 @@ void CHomeChatDlg::GetNickname() {
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
         GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
+        return false;
     }
     else {
+        GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
         nlohmann::json jsonRes = nlohmann::json::parse(res);
         if (jsonRes["status"] == 1) {
             if (jsonRes.contains("data") && jsonRes["data"].is_array()) {
-                theApp.m_mapNickname.clear();
+                m_tempNickname.clear();
 
                 for (const auto& item : jsonRes["data"]) {
                     std::string friendId = item.value("FriendID", "");
@@ -204,10 +213,11 @@ void CHomeChatDlg::GetNickname() {
                         info.nickname = item.value("Nickname", "");
 
                         DatabaseService::SaveNicknameToDB(info);
-                        theApp.m_mapNickname[friendId] = info;
+                        m_tempNickname[friendId] = info;
                     }
                 }
 
+                return true;
             }
         }
         else if (jsonRes["status"] == 0) {
@@ -217,9 +227,12 @@ void CHomeChatDlg::GetNickname() {
             GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_HIDE);
             GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->ShowWindow(SW_SHOW);
             GetDlgItem(IDC_STATIC_HOMECHAT_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
+
+            return false;
         }
-    
+        return false;
     }
+    return false;
 }
 
 void CHomeChatDlg::DrawFriendList(CDC* pDC)
@@ -245,12 +258,12 @@ void CHomeChatDlg::DrawFriendList(CDC* pDC)
         if (friendObj.pAvatar != nullptr && !friendObj.pAvatar->IsNull()) {
             pDC->SetStretchBltMode(HALFTONE);
 
-            int x = (int)(m_rectFriendArea.left + padding);
-            int y = (int)currentY;
-            int w = (int)iconSize;
-            int h = (int)iconSize;
+            int x = m_rectFriendArea.left + padding;
+            int y = currentY;
+            int w = iconSize;
+            int h = iconSize;
 
-            friendObj.pAvatar->StretchBlt(pDC->GetSafeHdc(), x, y, w, h, SRCCOPY);
+            PaintService::DrawAvatar(pDC, friendObj.pAvatar, x, y, w, h);
         }
 
         pDC->SetBkMode(TRANSPARENT);
@@ -267,8 +280,8 @@ void CHomeChatDlg::DrawFriendList(CDC* pDC)
         pDC->TextOut((int)(m_rectFriendArea.left + iconSize + 20),(int)(currentY + (iconSize / 4)), strDisplayName);
 
         int dotSize = iconSize / 4;
-        int dotX = m_rectFriendArea.left + padding + iconSize - dotSize * 1.3;
-        int dotY = currentY + iconSize - dotSize * 1.3;
+        int dotX = m_rectFriendArea.left + padding + iconSize - static_cast<int>(dotSize * 1.3);
+        int dotY = currentY + iconSize - static_cast<int>(dotSize * 1.3);
         PaintService::DrawStatusDot(pDC, dotX, dotY, dotSize, friendObj.isOnline);
 
         currentY += itemHeight;
@@ -312,10 +325,13 @@ void CHomeChatDlg::OnLButtonDown(UINT nFlags, CPoint point)
 
             if (it == m_mapChatWindows.end()) {
                 CChatFriendDlg* pNewChat = new CChatFriendDlg();
+
+                pNewChat->m_currentFriend = selectedFriend;
+
                 pNewChat->Create(IDD_CHATFRIEND_DIALOG, this);
 
                 m_mapChatWindows[selectedFriend.friendId] = pNewChat;
-                pNewChat->m_currentFriend = selectedFriend;
+                
 
                 it = m_mapChatWindows.find(selectedFriend.friendId);
             }
@@ -381,11 +397,17 @@ HBRUSH CHomeChatDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor){
 
 void CHomeChatDlg::OnTimer(UINT_PTR nIDEvent) {
     if (nIDEvent == 2) {
-        theApp.m_vecFriend.clear();
-        GetFiendList();
-        m_vecFriendDisplay = theApp.m_vecFriend;
-        GetNickname();
-        InvalidateRect(&m_rectFriendArea, TRUE);
+        m_tempNickname.clear();
+        m_tempFriendList.clear();
+
+        if (GetFiendList() && GetNickname()) {
+            theApp.m_vecFriend = m_tempFriendList;
+            theApp.m_mapNickname = m_tempNickname;
+
+            m_vecFriendDisplay = theApp.m_vecFriend;
+
+            InvalidateRect(&m_rectFriendArea, TRUE);
+        }
     }
     CDialogEx::OnTimer(nIDEvent);
 }

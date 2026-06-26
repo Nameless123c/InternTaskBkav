@@ -30,7 +30,6 @@ CChatFriendDlg::CChatFriendDlg(CWnd* pParent /*=nullptr*/)
 	, m_pImgEmoji(nullptr)
 	, m_pImgImage(nullptr)
 	, m_pImgAttach(nullptr)
-	, m_bIsFirstLoad(true)
 {
 }
 
@@ -45,6 +44,10 @@ BOOL CChatFriendDlg::OnInitDialog() {
 	CDialogEx::OnInitDialog();
 
 	SetBackgroundColor(RGB(255, 255, 255));
+
+	m_vecLocalMessages = DatabaseService::LoadMessages(theApp.m_userData.userId, m_currentFriend.friendId);
+	RefreshChatLayout();
+	Invalidate();
 
 	m_pImgSend = FileService::LoadImageFromFile("icon/SendMsgIcon.png");
 	m_pImgEmoji = FileService::LoadImageFromFile("icon/EmojiPickerIcon.png");
@@ -83,7 +86,6 @@ BOOL CChatFriendDlg::OnInitDialog() {
 
 	GetDlgItem(IDC_STATIC_CHATFRIEND_FULLNAME)->SetFont(&m_fontTitle);
 
-	GetMessage();
 	UpdateLastMessageTime();
 	SetTimer(1, 1000, NULL);
 
@@ -122,8 +124,15 @@ void CChatFriendDlg::OnPaint() {
 }
 
 void CChatFriendDlg::GetMessage() {
+	std::string lastTime = "0";
+	if (!m_vecLocalMessages.empty()) {
+		lastTime = m_vecLocalMessages.back().createdAt;
+	}
+
+
 	// 1. Gọi API dựa trên friendId riêng của khung chat này
-	std::string url = "http://localhost:8888/api/message/get-message?FriendID=" + m_currentFriend.friendId;
+	std::string url = "http://localhost:8888/api/message/get-message?FriendID="
+		+ m_currentFriend.friendId + "&LastTime=" + lastTime;
 	std::string token = theApp.m_userData.token;
 	std::string res = ApiService::SendGetRequest(url, token);
 
@@ -131,19 +140,19 @@ void CChatFriendDlg::GetMessage() {
 
 	nlohmann::json jsonRes = nlohmann::json::parse(res);
 	if (jsonRes["status"] == 1) {
-		// 2. Kiểm tra thay đổi dữ liệu trên vector riêng m_vecLocalMessages
-		bool bDataChanged = false;
-		if (m_vecLocalMessages.size() != jsonRes["data"].size()) bDataChanged = true;
-		else if (!m_vecLocalMessages.empty() && !jsonRes["data"].empty()) {
-			if (m_vecLocalMessages.back().id != jsonRes["data"].back().value("id", "")) bDataChanged = true;
-		}
+		
+		if (!jsonRes.contains("data") || jsonRes["data"].empty()) return;
 
-		if (!bDataChanged && !m_bIsFirstLoad) return;
+		std::string lastServerId = jsonRes["data"].back().value("id", "");
+
+
+		if (!m_vecLocalMessages.empty() && m_vecLocalMessages.back().id == lastServerId) {
+			return;
+		}
 
 		DatabaseService::ExecuteSQL("BEGIN TRANSACTION;");
 
 		// 3. Clear và nạp tin nhắn mới vào vector riêng
-		m_vecLocalMessages.clear();
 		for (auto& item : jsonRes["data"]) {
 			Message msg;
 			msg.id = item.value("id", "");
@@ -164,39 +173,29 @@ void CChatFriendDlg::GetMessage() {
 					msg.files.push_back(file);
 				}
 			}
-			DatabaseService::SaveMessageToDB(msg, m_currentFriend.friendId);
+
+			std::string sender = "", receiver = "";
+			
+			if (msg.messageType == 0) {
+				sender = m_currentFriend.friendId;
+				receiver = theApp.m_userData.userId;
+			}
+			else {
+				sender = theApp.m_userData.userId;
+				receiver = m_currentFriend.friendId;
+			}
+
+			DatabaseService::EnsureSenderExists(sender);
+			DatabaseService::SaveMessageToDB(msg, sender, receiver);
 			m_vecLocalMessages.push_back(msg);
 		}
 
 		DatabaseService::ExecuteSQL("COMMIT;");
 
 		// 4. Tính toán chiều cao dựa trên m_vecLocalMessages
-		CClientDC dc(this);
-		CFont font; font.CreatePointFont(90, _T("Segoe UI"));
-		CFont* pOld = dc.SelectObject(&font);
+		RefreshChatLayout();
 
-		int total = 0;
-		int nLimitWidth = (int)(m_rectChatArea.Width() * 0.7);
-		int nPadding = 8;
-		for (const auto& msg : m_vecLocalMessages) {
-			CRect rCalc(0, 0, nLimitWidth, 0);
-			CString strContent(CA2W(msg.content.c_str(), CP_UTF8));
-			dc.DrawText(strContent, rCalc, DT_CALCRECT | DT_WORDBREAK | DT_EDITCONTROL);
-			total += (rCalc.Height() + (nPadding * 3));
-		}
-		m_nTotalHeight = total + 5;
-		dc.SelectObject(pOld);
 
-		// 5. Cập nhật vị trí cuộn và yêu cầu vẽ lại
-		int nVisibleHeight = m_rectChatArea.Height();
-		int maxScroll = max(0, m_nTotalHeight - nVisibleHeight);
-
-		if (m_bIsFirstLoad || bDataChanged) {
-			m_nScrollPos = maxScroll;
-			m_bIsFirstLoad = false;
-		}
-
-		// 6. Cập nhật thời gian hiển thị cuối cùng
 		UpdateLastMessageTime();
 
 		InvalidateRect(&m_rectChatArea, FALSE);
@@ -396,12 +395,36 @@ void CChatFriendDlg::OnStnClickedStaticChatfriendExit(){
 
 
 LRESULT CChatFriendDlg::OnNcHitTest(CPoint point){
-	LRESULT hit = CDialogEx::OnNcHitTest(point);
+	CPoint pt = point;
+	ScreenToClient(&pt);
 
-	if (hit == HTCLIENT) {
-		return HTCAPTION;
+	if (m_rectSendBtn.PtInRect(pt)) {
+		return HTCLIENT;
 	}
 
-	return hit;
+	return HTCAPTION;
 }
 
+void CChatFriendDlg::RefreshChatLayout() {
+	CClientDC dc(this);
+	CFont font; font.CreatePointFont(90, _T("Segoe UI"));
+	CFont* pOld = dc.SelectObject(&font);
+
+	int total = 0;
+	int nLimitWidth = (int)(m_rectChatArea.Width() * 0.7);
+	int nPadding = 8;
+	for (const auto& msg : m_vecLocalMessages) {
+		CRect rCalc(0, 0, nLimitWidth, 0);
+		CString strContent(CA2W(msg.content.c_str(), CP_UTF8));
+		dc.DrawText(strContent, rCalc, DT_CALCRECT | DT_WORDBREAK | DT_EDITCONTROL);
+		total += (rCalc.Height() + (nPadding * 3));
+	}
+	m_nTotalHeight = total + 5;
+	dc.SelectObject(pOld);
+
+	// Tự động cuộn xuống đáy
+	int nVisibleHeight = m_rectChatArea.Height();
+	m_nScrollPos = max(0, m_nTotalHeight - nVisibleHeight);
+
+	InvalidateRect(&m_rectChatArea, FALSE);
+}

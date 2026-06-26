@@ -97,10 +97,10 @@ void CSignupDlg::OnBnClickedButtonSignupSubmit(){
 		} 
 		else {
 			nlohmann::json jsonRes = nlohmann::json::parse(res);
-			std::string strUserId = jsonRes["userId"];
+			
 
 			if (jsonRes["status"] == 1) {
-
+				std::string strUserId = jsonRes["userId"];
 				// lưu db
 				std::string sql = "INSERT INTO Users (userId, username, fullName, password) VALUES (?, ?, ?, ?);";
 				sqlite3_stmt* stmt;

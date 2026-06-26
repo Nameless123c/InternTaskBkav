@@ -90,9 +90,6 @@
     <ClInclude Include="Message.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
-    <ClInclude Include="sqlite3.h">
-      <Filter>Header Files\Database</Filter>
-    </ClInclude>
     <ClInclude Include="DatabaseService.h">
       <Filter>Header Files\Database</Filter>
     </ClInclude>
@@ -142,9 +139,6 @@
     </ClCompile>
     <ClCompile Include="CChatFriendDlg.cpp">
       <Filter>Source Files\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="sqlite3.c">
-      <Filter>Source Files\Database</Filter>
     </ClCompile>
     <ClCompile Include="DatabaseService.cpp">
       <Filter>Source Files\Database</Filter>

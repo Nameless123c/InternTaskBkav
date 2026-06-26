@@ -14,10 +14,11 @@ module.exports = () => {
             const { FullName, Username, Password } = req.body
             let info = await models.Users.findOne({ Username: Username }).exec()
             if (info != null) {
-                return res.status(400).json({ status: 0, data: null, message: 'Username already exists' })
+                return res.status(400).json({ status: 0, data:   null, message: 'Username already exists' })
             }
             bcrypt.hash(Password, saltRounds, async (err, hash) => {
                 if (err) {
+                    
                     return res.status(400).json({ status: 0, data: null, message: err })
                 }
                 const user = await models.Users({

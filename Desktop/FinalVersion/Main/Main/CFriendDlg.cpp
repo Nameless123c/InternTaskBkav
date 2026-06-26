@@ -17,6 +17,7 @@ BEGIN_MESSAGE_MAP(CFriendDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_FRIEND_SUBMIT, &CFriendDlg::OnBnClickedBtnFriendSubmit)
 	ON_STN_CLICKED(IDC_STATIC_FRIEND_EXIT, &CFriendDlg::OnStnClickedStaticFriendExit)
 	ON_WM_NCHITTEST()
+	ON_STN_CLICKED(IDC_STATIC_FRIEND_DELETE, &CFriendDlg::OnStnClickedStaticFriendDelete)
 END_MESSAGE_MAP()
 
 CFriendDlg::CFriendDlg(CWnd* pParent /*=nullptr*/)
@@ -57,6 +58,7 @@ BOOL CFriendDlg::OnInitDialog()
 	m_fontTitle.CreatePointFont(120, _T("Segoe UI Semibold"));
 
 	GetDlgItem(IDC_STATIC_FRIEND_NICKNAME)->SetFont(&m_fontTitle);
+	GetDlgItem(IDC_STATIC_FRIEND_TITLE)->SetFont(&m_fontTitle);
 
     m_friendData.pAvatar = FileService::LoadImageFromFile(m_friendData.avatar);
 
@@ -71,6 +73,7 @@ BOOL CFriendDlg::OnInitDialog()
 void CFriendDlg::OnPaint()
 {
 	CPaintDC dc(this);
+	PaintService::DrawAppBar(this, IDC_STATIC_FRIEND_APPBAR, &dc);
 
     CWnd* pArea = GetDlgItem(IDC_STATIC_FRIEND_AVT);
     if (pArea) {
@@ -158,6 +161,26 @@ HBRUSH CFriendDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) {
 		return (HBRUSH)GetStockObject(NULL_BRUSH);
 	}
 
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_FRIEND_DELETE) {
+		pDC->SetTextColor(RGB(4, 125, 231));
+		pDC->SetBkMode(TRANSPARENT);
+		return (HBRUSH)GetStockObject(NULL_BRUSH);
+	}
+
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_FRIEND_TITLE) {
+		pDC->SetTextColor(RGB(0, 0, 0));
+		pDC->SetBkColor(RGB(217, 217, 217)); // #D9D9D9
+		static CBrush brush(RGB(217, 217, 217));
+		return (HBRUSH)brush.GetSafeHandle();
+	}
+
+	if (pWnd->GetDlgCtrlID() == IDC_STATIC_FRIEND_EXIT) {
+		pDC->SetTextColor(RGB(0, 0, 0));
+		pDC->SetBkColor(RGB(217, 217, 217));
+		static CBrush brush(RGB(217, 217, 217));
+		return (HBRUSH)brush.GetSafeHandle();
+	}
+
 	return hbr;
 }
 
@@ -176,4 +199,31 @@ LRESULT CFriendDlg::OnNcHitTest(CPoint point){
 	}
 
 	return hit;
+}
+
+void CFriendDlg::OnStnClickedStaticFriendDelete()
+{
+	std::string url = "http://localhost:8888/api/user/nickname/delete";
+
+	std::string FriendID = m_friendData.friendId;
+
+	nlohmann::json data;
+
+	data["FriendID"] = FriendID;
+
+	std::string res = ApiService::SendPostRequest(url, data, theApp.m_userData.token);
+
+	if (res == "") {
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->SetWindowTextW(_T("Lỗi kết nối mạng"));
+	}
+	else {
+		nlohmann::json jsonRes = nlohmann::json::parse(res);
+
+		std::string msg = jsonRes["message"];
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->ShowWindow(SW_SHOW);
+		GetDlgItem(IDC_STATIC_FRIEND_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
+	}
 }

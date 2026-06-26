@@ -133,5 +133,34 @@ module.exports = () => {
         }
     })
 
+    router.post('/nickname/delete', async (req, res) => {
+        try {
+            const UserID = req.UserID;
+            const { FriendID } = req.body; 
+
+            const userExists = await models.Users.findOne({ _id: new ObjectId(UserID) });
+            if (!userExists) {
+                return res.status(400).json({ status: 0, message: "User not found" });
+            }
+
+            if (!FriendID) {
+                return res.status(400).json({ status: 0, message: "Thiếu FriendID" });
+            }
+
+            const result = await models.Nickname.deleteOne({ 
+                UserID: new ObjectId(UserID), 
+                FriendID: new ObjectId(FriendID) 
+            });
+
+            if (result.deletedCount === 0) {
+                return res.status(404).json({ status: 0, message: "Không tìm thấy biệt danh để xóa" });
+            }
+
+            return res.status(200).json({ status: 1, message: "Đã xóa biệt danh thành công" });
+        } catch (error) {
+            return res.status(400).json({ status: 0, message: error.message });
+        }
+    })
+
     return router
 }

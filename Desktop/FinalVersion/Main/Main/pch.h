@@ -6,7 +6,7 @@
 
 #ifndef PCH_H
 #define PCH_H
-
+#define SQLITE_HAS_CODEC 1
 // add headers that you want to pre-compile here
 #include "framework.h"
 

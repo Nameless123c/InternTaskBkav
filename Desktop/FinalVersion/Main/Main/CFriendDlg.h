@@ -30,4 +30,5 @@ public:
 	CFont m_fontTitle;
 	afx_msg void OnStnClickedStaticFriendExit();
 	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg void OnStnClickedStaticFriendDelete();
 };

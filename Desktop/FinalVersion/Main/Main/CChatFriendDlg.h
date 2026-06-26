@@ -30,6 +30,7 @@ public:
 	void SendMessage();
 	void OnTimer(UINT_PTR nIDEvent);
 	void UpdateLastMessageTime();
+	void RefreshChatLayout();	
 
 	CImage* m_pImgSend;
 	CImage* m_pImgEmoji;
@@ -44,7 +45,6 @@ public:
 	int m_nScrollPos;   
 	int m_nTotalHeight; 
 	CRect m_rectChatArea;
-	bool m_bIsFirstLoad;
 	CFont m_fontTitle;
 	std::vector<Message> m_vecLocalMessages;
 	Friend m_currentFriend;

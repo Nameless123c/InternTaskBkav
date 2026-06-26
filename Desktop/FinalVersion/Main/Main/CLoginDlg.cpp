@@ -107,37 +107,9 @@ void CLoginDlg::OnBnClickedBtnLoginSubmit(){
 					theApp.m_userData.avatar = jsonRes["data"]["Avatar"];
 				}
 
+				theApp.m_userData.password = strPassword;
+
 				theApp.m_userData.token = jsonRes["data"]["token"];
-
-				// db
-				std::string username = theApp.m_userData.username;
-				sqlite3_stmt* stmt;
-				std::string sqlCheck = "SELECT COUNT(*) FROM Users WHERE username = ?;";
-
-				if (sqlite3_prepare_v2(DatabaseService::m_db, sqlCheck.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-					sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
-
-					if (sqlite3_step(stmt) == SQLITE_ROW) {
-						int count = sqlite3_column_int(stmt, 0);
-
-						if (count == 0) {
-							std::string sqlInsert = "INSERT INTO Users (userId, username, fullName, avatar, password) VALUES (?, ?, ?, ?, ?);";
-							sqlite3_stmt* stmtInsert;
-
-							if (sqlite3_prepare_v2(DatabaseService::m_db, sqlInsert.c_str(), -1, &stmtInsert, nullptr) == SQLITE_OK) {
-								sqlite3_bind_text(stmtInsert, 1, theApp.m_userData.userId.c_str(), -1, SQLITE_TRANSIENT);
-								sqlite3_bind_text(stmtInsert, 2, theApp.m_userData.username.c_str(), -1, SQLITE_TRANSIENT);
-								sqlite3_bind_text(stmtInsert, 3, theApp.m_userData.fullName.c_str(), -1, SQLITE_TRANSIENT);
-								sqlite3_bind_text(stmtInsert, 4, theApp.m_userData.avatar.c_str(), -1, SQLITE_TRANSIENT);
-								sqlite3_bind_text(stmtInsert, 5, strPassword.c_str(), -1, SQLITE_TRANSIENT); // Sửa thành index 5
-
-								sqlite3_step(stmtInsert);
-								sqlite3_finalize(stmtInsert);
-							}
-						}
-					}
-					sqlite3_finalize(stmt);
-				}
 
 				EndDialog(ID_HOMECHAT_TRIGGER);
 			}
