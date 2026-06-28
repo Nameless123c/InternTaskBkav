@@ -4,6 +4,7 @@ import '../services/session_manager.dart';
 import 'dart:convert';
 import '../services/api_service.dart';
 import '../models/message.dart';
+import 'friend_screen.dart';
 
 class ChatfriendScreen extends StatefulWidget {
   const ChatfriendScreen({super.key});
@@ -127,6 +128,10 @@ class _ChatFriendScreen extends State<ChatfriendScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final String displayName = SessionManager.nicknameMap.containsKey(SessionManager.selectedFriend!.friendId)
+        ? SessionManager.nicknameMap[SessionManager.selectedFriend!.friendId]!
+        : SessionManager.selectedFriend!.fullName;
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 80.0,
@@ -140,14 +145,47 @@ class _ChatFriendScreen extends State<ChatfriendScreen> {
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
-            CircleAvatar(radius: 20, backgroundImage: AssetImage(SessionManager.selectedFriend!.avatar)),
+            // Kiểm tra an toàn cho avatar
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: SessionManager.selectedFriend != null
+                  ? AssetImage(SessionManager.selectedFriend!.avatar)
+                  : null,
+            ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(SessionManager.selectedFriend!.fullName, style: const TextStyle(fontSize: 16, color: Colors.black)),
-                Text(SessionManager.selectedFriend!.isOnline ? "Trực tuyến" : "Ngoại tuyến", style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+
+            // Bọc trong Material và InkWell để xử lý sự kiện click
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FriendScreen()),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName ?? "Đang tải...",
+                        style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      Text(
+                        SessionManager.selectedFriend?.isOnline == true ? "Trực tuyến" : "Ngoại tuyến",
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),

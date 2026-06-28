@@ -5,6 +5,7 @@ import '../services/session_manager.dart';
 import '../models/friend.dart';
 import '../models/user.dart';
 import 'chatfriend_screen.dart';
+import 'dart:async';
 
 class HomechatScreen extends StatefulWidget {
   const HomechatScreen({super.key});
@@ -17,17 +18,37 @@ class _HomechatScreen extends State<HomechatScreen> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   List<Friend> _filteredList = [];
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _refreshData();
+    });
+  }
+
+  Future<void> _refreshData() async {
+    // Chỉ cần gọi các hàm cập nhật dữ liệu (không cần clear danh sách để tránh nháy màn hình)
+    await Future.wait([
+      _getFriendList(),
+      _getNickname(),
+    ]);
+
+    // Gọi setState để giao diện tự cập nhật với dữ liệu mới nhất
+    if (mounted) {
+      setState(() {
+        _filteredList = SessionManager.friendList;
+      });
+    }
   }
 
   Future<void> _loadInitialData() async {
     await Future.wait([
       _getUserData(),
       _getFriendList(),
+      _getNickname(),
     ]);
     if (mounted) {
       setState(() {
@@ -35,6 +56,7 @@ class _HomechatScreen extends State<HomechatScreen> {
       });
       _isLoading = false;
       _searchController.addListener(_onSearchChanged);
+
     }
   }
 
@@ -49,6 +71,7 @@ class _HomechatScreen extends State<HomechatScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
@@ -96,6 +119,36 @@ class _HomechatScreen extends State<HomechatScreen> {
           avatar: cleanAvatar, // Lưu giá trị đã làm sạch vào model
         ));
       }
+    }
+  }
+
+  Future<void> _getNickname() async {
+    SessionManager.friendList.clear();
+    String url = "http://10.0.2.2:8888/api/user/nickname/list";
+    String token = SessionManager.token!;
+    String res = await ApiService.sendGetRequest(url, token: token);
+
+    if (res == "") return;
+
+    var jsonRes = jsonDecode(res);
+    if (jsonRes["status"] == 1) {
+      SessionManager.nicknameMap.clear();
+
+      if (jsonRes.containsKey("data") && jsonRes["data"] is List) {
+        List<dynamic> dataList = jsonRes["data"];
+
+        for (var item in dataList) {
+          String friendId = item["FriendID"]?.toString() ?? "";
+          String nickname = item["Nickname"]?.toString() ?? "";
+
+          // 3. Lưu vào Map nếu friendId hợp lệ
+          if (friendId.isNotEmpty) {
+            SessionManager.nicknameMap[friendId] = nickname;
+          }
+        }
+
+      }
+
     }
   }
 
@@ -157,6 +210,9 @@ class _HomechatScreen extends State<HomechatScreen> {
                 itemCount: _filteredList.length,
                 itemBuilder: (context, index) {
                   final friend = _filteredList[index];
+                  final String displayName = SessionManager.nicknameMap.containsKey(friend.friendId)
+                      ? SessionManager.nicknameMap[friend.friendId]!
+                      : friend.fullName;
                   return InkWell(
                     onTap: () {
                       SessionManager.selectedFriend = friend;
@@ -174,7 +230,7 @@ class _HomechatScreen extends State<HomechatScreen> {
                             ],
                           ),
                           const SizedBox(width: 30),
-                          Text(friend.fullName, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w400)),
+                          Text(displayName, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w400)),
                         ],
                       ),
                     ),
