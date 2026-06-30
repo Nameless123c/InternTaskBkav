@@ -59,6 +59,7 @@ module.exports = () => {
         try {
             const UserID = req.UserID
             const { FriendID, Content } = req.body
+
             let listImages = []
             let listFiles = []
             let user = await models.Users.findOne({ _id: new ObjectId(UserID) }).exec()
@@ -66,12 +67,24 @@ module.exports = () => {
                 return res.status(400).json({ status: 0, data: null, message: 'User not found' })
             }
 
+            const hasContent = Content && Content.trim().length > 0;
+
+            if (!hasContent) {
+                return res.status(400).json({ 
+                    status: 0, 
+                    data: null, 
+                    message: 'Tin nhắn không được để trống' 
+                });
+            }
+
+
             let Friend = await models.Users.findOne({ _id: new ObjectId(FriendID) }).exec()
             if (Friend == null) {
                 return res.status(400).json({ status: 0, data: null, message: 'Friend not found' })
             }
             if (req.files && req.files.length > 0) {
                 for (const file of req.files) {
+
                     if (file.fieldname === 'files') {
                         const extension = file.originalname.split('.').pop();
                         const nameFile = uuidv4();
@@ -98,6 +111,7 @@ module.exports = () => {
                 }
             }
 
+            
             const response = await models.Message({
                 UserID: user._id,
                 FriendID: Friend._id,

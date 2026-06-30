@@ -69,6 +69,7 @@
 #define IDC_STATIC_FRIEND_DELETE        1057
 #define IDC_STATIC_FRIEND_TITLE         1058
 #define IDC_STATIC_FRIEND_APPBAR        1059
+#define IDC_STATIC_CHATFRIEND_FIAREA    1063
 #define ID_LOGIN_TRIGGER                1101
 #define ID_SIGNUP_TRIGGER               1102
 #define ID_HOMECHAT_TRIGGER             1103
@@ -82,7 +83,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1060
+#define _APS_NEXT_CONTROL_VALUE         1064
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

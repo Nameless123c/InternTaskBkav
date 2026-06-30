@@ -100,21 +100,10 @@ void CSignupDlg::OnBnClickedButtonSignupSubmit(){
 			
 
 			if (jsonRes["status"] == 1) {
-				std::string strUserId = jsonRes["userId"];
-				// lưu db
-				std::string sql = "INSERT INTO Users (userId, username, fullName, password) VALUES (?, ?, ?, ?);";
-				sqlite3_stmt* stmt;
-
-				if (sqlite3_prepare_v2(DatabaseService::m_db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-					// 2. Gán giá trị theo thứ tự (userId là index 1)
-					sqlite3_bind_text(stmt, 1, strUserId.c_str(), -1, SQLITE_TRANSIENT);   // userId (lấy từ JSON response)
-					sqlite3_bind_text(stmt, 2, strUsername.c_str(), -1, SQLITE_TRANSIENT); // username
-					sqlite3_bind_text(stmt, 3, strFullName.c_str(), -1, SQLITE_TRANSIENT); // fullName
-					sqlite3_bind_text(stmt, 4, strPassword.c_str(), -1, SQLITE_TRANSIENT); // password
-
-					sqlite3_step(stmt);
-					sqlite3_finalize(stmt);
-				}
+				std::string msg = jsonRes["message"];
+				GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_HIDE);
+				GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->ShowWindow(SW_SHOW);
+				GetDlgItem(IDC_STATIC_SIGNUP_ERROR)->SetWindowTextW(CA2W(msg.c_str(), CP_UTF8));
 
 				EndDialog(ID_LOGIN_TRIGGER);
 			}

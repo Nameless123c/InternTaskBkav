@@ -148,7 +148,7 @@ void CHomeChatDlg::GetUserData()
     if (res != "") {
         nlohmann::json jsonRes = nlohmann::json::parse(res);
         if (jsonRes["status"] == 1) {
-            if (jsonRes["data"].contains("Avatar")) {
+            if (jsonRes["data"].contains("Avatar") && !jsonRes["data"]["Avatar"].is_null()) {
                 theApp.m_userData.avatar = jsonRes["data"]["Avatar"];
                 theApp.m_userData.avatar = theApp.m_userData.avatar.substr(1);
 

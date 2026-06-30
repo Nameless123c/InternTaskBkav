@@ -31,16 +31,22 @@ public:
 	void OnTimer(UINT_PTR nIDEvent);
 	void UpdateLastMessageTime();
 	void RefreshChatLayout();	
+	void OpenAttachFileDialog();
+	void DownloadImg(MediaItem img);
+	void DownloadFile(MediaItem file);
 
 	CImage* m_pImgSend;
 	CImage* m_pImgEmoji;
 	CImage* m_pImgImage;
 	CImage* m_pImgAttach;
+	CImage* m_pImgFile;
+	CImage* m_pImgDownload;
 
 	CRect m_rectSendBtn;
 	CRect m_rectEmojiBtn;
 	CRect m_rectImageBtn;
 	CRect m_rectAttachBtn;
+	CRect m_rectFIArea;
 
 	int m_nScrollPos;   
 	int m_nTotalHeight; 
@@ -50,6 +56,8 @@ public:
 	Friend m_currentFriend;
 	CFriendDlg m_friendDlg;
 	BOOL m_isFriendDlgCreated = FALSE;
+	BOOL m_bHasFileSelected = FALSE;
+	std::vector<MediaItem> m_vecPendingFiles;
 	
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
@@ -60,4 +68,5 @@ public:
 	afx_msg void OnClose();
 	afx_msg void OnStnClickedStaticChatfriendExit();
 	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg void OnStnClickedStaticChatfriendErase();
 };

@@ -1,0 +1,30 @@
+#define WM_USER_LOGOUT_SIGNAL (WM_USER + 200)
+#define WM_USER_LOGIN_RESULT (WM_USER + 100)
+
+@QbkmnahT
+
+Bkav@2026
+
+tuần 7:
+Desktop:
+xử lý lag khi server tắt
+last _ đa luồng _ chỗ download file
+
+
+flutter clean
+flutter pub get
+flutter run
+Mobile:
+- sqlite lưu db (chia db cho từng user)
+- xóa biệt danh
+- đăng xuất, đổi avt
+- mã hóa db, load db
+- file, icon, đa luồng
+
+
+tuần 8: 
+- socket or chỉnh lại logic phía server
+- trạng thái tin nhắn (đã gửi, đã nhận, đã xem)
+- (thay đổi màu sắc tin theo trạng thái ....) 
+
+- tìm hiểu sơ qua _ đổi mật khẩu _ tìm hiểu mã hóa SQLite Cipher.

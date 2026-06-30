@@ -166,3 +166,60 @@ bool ApiService::UpdateProfile(const std::string& url, const std::string& fullNa
 
 	return (res == CURLE_OK);
 }
+
+
+std::string ApiService::SendMultipartRequest(const std::string& url,
+	const std::string& content,
+	const std::string& friendId,
+	const std::vector<MediaItem>& files,
+	const std::string& token) {
+	CURL* curl = curl_easy_init();
+	if (!curl) return "";
+
+	std::string readBuffer;
+	curl_mime* mime = curl_mime_init(curl);
+
+	// 1. Đóng gói Text Content
+	curl_mimepart* part = curl_mime_addpart(mime);
+	curl_mime_name(part, "Content");
+	curl_mime_data(part, content.c_str(), CURL_ZERO_TERMINATED);
+
+	// 2. Đóng gói FriendID
+	part = curl_mime_addpart(mime);
+	curl_mime_name(part, "FriendID");
+	curl_mime_data(part, friendId.c_str(), CURL_ZERO_TERMINATED);
+
+	// 3. Đóng gói các file đính kèm
+	// Lưu ý: Tên field "files" phải khớp chính xác với router.post bên server
+	for (const auto& item : files) {
+		part = curl_mime_addpart(mime);
+		curl_mime_name(part, "files");
+		curl_mime_filedata(part, item.url.c_str());
+	}
+
+	// 4. Cấu hình Headers (Chỉ cần Authorization, không cần Content-Type)
+	struct curl_slist* headers = NULL;
+	if (!token.empty()) {
+		std::string authHeader = "Authorization: Bearer " + token;
+		headers = curl_slist_append(headers, authHeader.c_str());
+	}
+
+	// 5. Thiết lập CURL
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime); // Dùng MIMEPOST cho Multipart
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallBack); // Callback của bạn
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L); // Thời gian chờ upload file có thể lâu hơn
+
+	CURLcode res = curl_easy_perform(curl);
+
+	// 6. Dọn dẹp
+	curl_mime_free(mime);
+	curl_slist_free_all(headers);
+	curl_easy_cleanup(curl);
+
+	return (res == CURLE_OK) ? readBuffer : "";
+}

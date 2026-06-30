@@ -1,0 +1,29 @@
+#define WM_USER_LOGOUT_SIGNAL (WM_USER + 200)
+
+@QbkmnahT
+
+Bkav@2026
+
+tuần 7:
+Desktop:
+- file, icon, đa luồng
+(kịch bản nhiều ảnh, nhiều file _ tối đa 3, -> tải file (Lbuttondown _ hơi mệt) -> icon (dùng thư viện ngoài) -> đa luồng)
+
+
+flutter clean
+flutter pub get
+flutter run
+Mobile:
+- sqlite lưu db (chia db cho từng user)
+- xóa biệt danh
+- đăng xuất, đổi avt
+- mã hóa db, load db
+- file, icon, đa luồng
+
+
+tuần 8: 
+- socket or chỉnh lại logic phía server
+- trạng thái tin nhắn (đã gửi, đã nhận, đã xem)
+- (thay đổi màu sắc tin theo trạng thái ....) 
+
+- tìm hiểu sơ qua _ đổi mật khẩu _ tìm hiểu mã hóa SQLite Cipher.

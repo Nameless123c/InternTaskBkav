@@ -102,16 +102,29 @@ void CLoginDlg::OnBnClickedBtnLoginSubmit(){
 				theApp.m_userData.username = jsonRes["data"]["Username"];
 				theApp.m_userData.fullName = jsonRes["data"]["FullName"];
 				theApp.m_userData.userId = jsonRes["data"]["userId"];
-
-				if (jsonRes["data"].contains("Avatar")) {
+				if (jsonRes["data"].contains("Avatar") && !jsonRes["data"]["Avatar"].is_null()) {
 					theApp.m_userData.avatar = jsonRes["data"]["Avatar"];
 				}
-
 				theApp.m_userData.password = strPassword;
-
 				theApp.m_userData.token = jsonRes["data"]["token"];
 
+				// lưu db
+				std::string sql = "INSERT INTO Users (userId, username, fullName, password, avatar) VALUES (?, ?, ?, ?, ?);";
+				sqlite3_stmt* stmt;
+
+				if (sqlite3_prepare_v2(DatabaseService::m_db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+					sqlite3_bind_text(stmt, 1, theApp.m_userData.userId.c_str(), -1, SQLITE_TRANSIENT);   // userId (lấy từ JSON response)
+					sqlite3_bind_text(stmt, 2, strUsername.c_str(), -1, SQLITE_TRANSIENT); // username
+					sqlite3_bind_text(stmt, 3, theApp.m_userData.fullName.c_str(), -1, SQLITE_TRANSIENT); // fullName
+					sqlite3_bind_text(stmt, 4, strPassword.c_str(), -1, SQLITE_TRANSIENT); // password
+					sqlite3_bind_text(stmt, 4, theApp.m_userData.avatar.c_str(), -1, SQLITE_TRANSIENT);
+
+					sqlite3_step(stmt);
+					sqlite3_finalize(stmt);
+				}
+
 				EndDialog(ID_HOMECHAT_TRIGGER);
+
 			}
 			else if (jsonRes["status"] == 0) {
 				std::string msg = jsonRes["message"];
